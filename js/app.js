@@ -4,7 +4,8 @@
     $.fn.HTMLLot = function(options) {
 
         var o = $.extend({
-            abc: ""
+            codeBoxHeadline: 'Schreibe deinen Code',
+            codeBoxText: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.'
         }, options );
 
         var self = this;
@@ -22,6 +23,7 @@
             editor: $('<textarea class="htmlb editor">')
         };
         var houseBox;
+        var house;
     
         var elementList;
         var units = [];
@@ -44,16 +46,24 @@
             contentBox.append('<div class="htmlb landside">');
             
             // Code Box
-            codeBox = $('<div class="htmlb code-box"></div>');
+            codeBox = $('<div class="htmlb code-box">');
             codeBox.append(codeBoxElements.headline, codeBoxElements.text, codeBoxElements.editor);
             contentBox.append(codeBox);
             
-            codeBoxElements.headline.html('Schreibe deinen Code');
-            codeBoxElements.text.html('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.');
+            codeBoxElements.headline.html(o.codeBoxHeadline);
+            codeBoxElements.text.html(o.codeBoxText);
         
             // Haus
             houseBox = $('<div class="htmlb house-box">');
             contentBox.append(houseBox);
+            
+            house = $('<div class="htmlb house">');
+            houseBox.append(house);
+            house.append($('<div class="htmlb asset level">'));
+            house.append($('<div class="htmlb asset level" style="bottom: 25%">'));
+            house.append($('<div class="htmlb asset level" style="bottom: 50%">'));
+            house.append($('<div class="htmlb asset roof" style="bottom: 75%">'));
+            
             
             // Element Selection
             elementList = $('<ul class="htmlb element-list">');
