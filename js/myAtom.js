@@ -8,8 +8,8 @@ element.set({
 		roof: true,
 		roofAttributes: {
 		},
-		floor: true,
-		floorAttributes: {
+		ground: true,
+		groundAttributes: {
 			doors:
 		},
 		sgml: true,
