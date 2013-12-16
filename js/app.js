@@ -30,6 +30,28 @@
         
         // Gesetzte Assets
         var clouds = [];
+        
+        var houseStruct = [
+            {
+                tag: 'test',
+                subElements: [
+                    {
+                        tag: 'a'
+                    }
+                ]
+            },
+            {
+                tag: 'test',
+                subElements: [
+                    {
+                        tag: 'b'
+                    }
+                ]
+            },
+            {
+                tag: 'b'
+            }
+        ];
 
         ///
         /// Initialization
@@ -79,6 +101,17 @@
             var unit = new htmlbUnit(self, name, title);
             units.push(unit);
             elementList.append(unit.getIcon());
+        }
+        
+        this.initEditor = function () {
+            var editor = codeBoxElements.editor;
+            $.each(houseStruct, function(index, value) {
+               console.log(value); 
+            });
+        }
+        
+        this.updateEditor = function () {
+            
         }
         
         this.addCloud = function (type, posY, speed) {
