@@ -48,6 +48,7 @@
 }
 
 .htmlb.code-box {
+  -moz-box-sizing:border-box;
   box-sizing:border-box;
 
   position: absolute;
@@ -77,6 +78,7 @@ h3.htmlb {
 }
 
 .htmlb.house-box {
+  -moz-box-sizing:border-box;
   box-sizing:border-box;
   
   position: absolute;
@@ -92,6 +94,7 @@ h3.htmlb {
 }
 
 .htmlb.element-list {
+  -moz-box-sizing:border-box;
   box-sizing: border-box;
   
   width: 100%;
