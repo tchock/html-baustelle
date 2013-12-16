@@ -33,7 +33,7 @@
         
         var houseStruct = [
             {
-                tag: 'test',
+                tag: 'testabvc',
                 subElements: [
                     {
                         tag: 'a'
@@ -50,6 +50,29 @@
             },
             {
                 tag: 'b'
+            },
+            {
+                tag: 'blub',
+                subElements: [
+                    {
+                        tag: 'blub',
+                        subElements: [
+                            {
+                                tag: 'blub',
+                                subElements: [
+                                    {
+                                        tag: 'blub',
+                                        subElements: [
+                                            {
+                                                tag: 'b'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
             }
         ];
 
@@ -106,9 +129,27 @@
         this.initEditor = function () {
             var editor = codeBoxElements.editor;
             $.each(houseStruct, function(index, value) {
-               console.log(value); 
+               addTag(value, 0);
             });
         }
+        
+        function addTag (tagObject, level) {
+            // Add Tabs that are needed
+            var tabs = '';
+            for (var i = level; i > 0; i--) {
+                tabs += '\t';
+            }
+            
+            codeBoxElements.editor.val(codeBoxElements.editor.val()+tabs+'<'+tagObject.tag+'>');
+            if (typeof tagObject.subElements !== 'undefined' && tagObject.subElements.length > 0) {
+                codeBoxElements.editor.val(codeBoxElements.editor.val()+"\n");
+                $.each(tagObject.subElements, function(index, value) {
+                   addTag(value, level+1);
+                });
+                codeBoxElements.editor.val(codeBoxElements.editor.val()+tabs);
+            }
+            codeBoxElements.editor.val(codeBoxElements.editor.val()+"</"+tagObject.tag+">\n");
+        } 
         
         this.updateEditor = function () {
             
