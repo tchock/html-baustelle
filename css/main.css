@@ -48,6 +48,7 @@
 }
 
 .htmlb.code-box {
+  -moz-box-sizing:border-box;
   box-sizing:border-box;
 
   position: absolute;
@@ -77,6 +78,7 @@ h3.htmlb {
 }
 
 .htmlb.house-box {
+  -moz-box-sizing:border-box;
   box-sizing:border-box;
   
   position: absolute;
@@ -87,11 +89,13 @@ h3.htmlb {
   height: 100%; 
   
   -webkit-perspective: 600px;
+  -moz-perspective: 600px;
   
   z-index: 10000;
 }
 
 .htmlb.element-list {
+  -moz-box-sizing:border-box;
   box-sizing: border-box;
   
   width: 100%;
@@ -112,6 +116,9 @@ h3.htmlb {
   margin-left: -18.75%;
   -webkit-transform-origin: 50% 100%;
   -webkit-transform: rotateX(-20deg);
+  -moz-transform-origin: 50% 100%;
+  -moz-transform: rotateX(-20deg);
+  
 }
 
 .htmlb.asset.level {
