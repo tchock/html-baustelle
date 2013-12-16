@@ -137,7 +137,7 @@
         
         var self = this;
         
-        var unitIcon = $('<li class="htmlb unit-icon unit-'+name+'" data-unit-name="'+name+'">'+title+'</li>');
+        var unitIcon = $('<li class="htmlb unit-icon unit-'+name+'" data-unit-name="'+name+'" draggable="true" >'+title+'</li>');
         
         this.getIcon = function () {
             return unitIcon;
@@ -163,5 +163,7 @@
         
         return this;
     }
+	
+	
 
 }( jQuery ));
