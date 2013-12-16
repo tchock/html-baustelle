@@ -163,7 +163,5 @@
         
         return this;
     }
-	
-	
 
 }( jQuery ));
