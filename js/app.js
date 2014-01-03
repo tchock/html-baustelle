@@ -60,7 +60,7 @@
             codeBox.append(codeBoxElements.headline, codeBoxElements.text);
             contentBox.append(codeBox);
             codeBoxElements.editor = CodeMirror(codeBox[0], {
-              mode:  "text/xml",
+              mode:  "text/html",
               lineNumbers: true,
               indentUnit: indent,
               autoCloseTags: autoClose,
