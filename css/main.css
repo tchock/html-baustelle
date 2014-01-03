@@ -65,6 +65,9 @@
   z-index: 10000;
 }
 
+.line-highlight {
+  background-color:#2d593d;
+}
 
 h3.htmlb {
   color: #4fa4b0;
@@ -185,7 +188,6 @@ h3.htmlb {
 .htmlb.unit-icon.unit-door {
   background-position: 75% 0;
 }
-
 
 
 
