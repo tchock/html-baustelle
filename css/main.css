@@ -65,6 +65,9 @@
   z-index: 10000;
 }
 
+.line-highlight {
+  background-color:#2d593d;
+}
 
 h3.htmlb {
   color: #4fa4b0;
@@ -186,9 +189,16 @@ h3.htmlb {
   background-position: 75% 0;
 }
 
+<<<<<<< HEAD
 .htmlb.unit-icon.dragstart{
   opacity: 0.4;
 }
+=======
+.htmlb.unit-icon.unit-ground {
+  background-position: 100% 0;
+}
+
+>>>>>>> origin/master
 
 
 /********************

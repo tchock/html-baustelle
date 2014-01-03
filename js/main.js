@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 baustelle = $('#baustelle').HTMLLot({codeBoxHeadline: "test"});
 baustelle.addUnit('level', 'Stockwerk');
 baustelle.addUnit('roof', 'Dach');
@@ -34,3 +35,7 @@ function handleDragStart(e) {
 	
 	$('.house')[0].addEventListener('dragover', handleDragOver, false);
 	$('.house')[0].addEventListener('dragleave', handleDragLeave, false);
+=======
+var baustelle = $('#baustelle').HTMLLot({lang: 'xml'});
+baustelle.addUnitList(units);
+>>>>>>> origin/master
