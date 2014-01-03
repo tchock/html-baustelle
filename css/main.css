@@ -186,7 +186,9 @@ h3.htmlb {
   background-position: 75% 0;
 }
 
-
+.htmlb.unit-icon.dragstart{
+  opacity: 0.4;
+}
 
 
 /********************

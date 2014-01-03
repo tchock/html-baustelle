@@ -6,32 +6,30 @@ baustelle.addUnit('door', 'Tür');
 
 // Drag and Drop handler
 function handleDragStart(e) {
-		console.log("DragStart");
+		this.classList.add('dragstart');
+		e.dataTransfer.effectAllowed = 'move';
 		e.dataTransfer.setData('text/html', this.innerHTML);
 	}
 	function handleDragOver(e) {
-		$('.house').animate({
-		bottom: "10px"
-		});
+		$('.house').css('border', 'solid 2px');
 	}
 	function handleDragLeave(e) {
-		$('.house').animate({
-		bottom: "0px"
-		});
+		$('.house').css('border', 'none');
 	}
 	function handleDrop(e) {
-		console.log("Drop");
-	}
+		$('.house').css('background-color', 'red');
+		if (e.stopPropagation) {
+			e.stopPropagation();
+		}
+  }
 	function handleDragEnd(e) {
-		$('.house').animate({
-		bottom: "0px"
-		});
+		this.classList.remove('dragstart');
 	}
 	// Drag and Drop
 	$('.unit-icon').each(function() {
 		this.addEventListener('dragstart', handleDragStart, false);
-		this.addEventListener('drop', handleDrop, false);
 		this.addEventListener('dragend', handleDragEnd, false);
+		this.addEventListener('drop', handleDrop, false);
 	});
 	
 	$('.house')[0].addEventListener('dragover', handleDragOver, false);
