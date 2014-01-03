@@ -99,7 +99,14 @@
             units.push(unit);
             // Füge zu Element Auswahl hinzu, wenn Spec für Sprache vorhanden ist
             if (unit.getSpec(o.lang) != null)
-                elementList.append(unit.getIcon());
+                addIcon(unit);
+        }
+        
+        function addIcon (unit) {
+            elementList.append(unit.getIcon());
+            unit.getIcon().on('click', function(e){
+                
+            });
         }
         
         this.addUnitList = function (unitList) {
@@ -113,6 +120,16 @@
         this.getUnitByTag = function (tag) {
             for (var i = units.length-1; i>=0; i--) {
                 if (units[i].getSpec(o.lang).tag == tag)
+                    return units[i];
+            }
+            return null;
+        }
+        
+        /// Gibt die Unit zurück, die zu einem angegebenen Namen passt
+        /// @param name Name des gesuchten Objektes
+        this.getUnitByName = function (name) {
+            for (var i = units.length-1; i>=0; i--) {
+                if (units[i].getName() == name)
                     return units[i];
             }
             return null;
@@ -292,9 +309,11 @@
         
         var self = this;
     
+        var icon = $('<li class="htmlb unit-icon unit-'+name+'" data-unit-name="'+name+'" draggable="true" >'+title+'</li>');;
+    
         /// Gibt Icon für die Bauteil Auswahl zurück
         this.getIcon = function () {
-            return $('<li class="htmlb unit-icon unit-'+name+'" data-unit-name="'+name+'" draggable="true" >'+title+'</li>');
+            return icon;
         }
         
         /// Gibt die Spezifikation des Elements zurück
