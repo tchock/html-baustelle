@@ -1,5 +1,2 @@
-baustelle = $('#baustelle').HTMLLot({codeBoxHeadline: "test"});
-baustelle.addUnit('level', 'Stockwerk');
-baustelle.addUnit('roof', 'Dach');
-baustelle.addUnit('window', 'Fenster');
-baustelle.addUnit('door', 'Tür');
+var baustelle = $('#baustelle').HTMLLot({lang: 'xml'});
+baustelle.addUnitList(units);
