@@ -163,7 +163,6 @@ var deepDiffMapper = function() {
             houseBox.append(house);
 			
 			houseBox[0].addEventListener('dragenter', function(e){
-				self.updateZoomLevel(1);
 			},false);
 			
 			houseBox[0].addEventListener('dragover', function(e){
@@ -184,7 +183,7 @@ var deepDiffMapper = function() {
 				house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%">'));
 			  } 
 			  
-			  	console.log(maxLevels - currentMouseLevel);
+			  self.updateZoomLevel(1);
 			  
 			}, false);
 			
@@ -486,10 +485,13 @@ var deepDiffMapper = function() {
             var oldSideRatio = house.width()/(house.height()/oldLevel);
             var newWidth = (house.height()/maxLevels)*oldSideRatio;
             if (diff > 0) {
-                house.find('.level, .ground, .roof').animate({
-                    bottom: ((100/maxLevels)*(houseStruct.length-1-i))+'%',
-                    height: (100/maxLevels)+'%'
-                },400);
+				var i =houseStruct.length;
+                house.find('.level, .ground, .roof').each(function () {
+					$(this).animate({
+						bottom: ((100/maxLevels)*(--i))+'%',
+						height: (100/maxLevels)+'%'
+					},400);
+				});
             }
             house.stop().animate({
                 width: newWidth,
