@@ -480,11 +480,16 @@ var deepDiffMapper = function() {
         /// Aktualisiert das Zoomlevel und ändert daraufhin die Größe des Hauses
         /// @param diff Differenz zur Anzahl der Werte in der Datenstruktur (z.B. 1, wenn ein neues Stockwerk bei DragDrop hinzugefügt werden soll)
         this.updateZoomLevel = function (diff) {
-            console.log("penis");
             var oldLevel = maxLevels;
             maxLevels = Math.max(houseStruct.length+diff, 4);
             var oldSideRatio = house.width()/(house.height()/oldLevel);
             var newWidth = (house.height()/maxLevels)*oldSideRatio;
+            if (diff > 0) {
+                house.find('.level, .ground, .roof').animate({
+                    bottom: ((100/maxLevels)*(houseStruct.length-1-i))+'%',
+                    height: (100/maxLevels)+'%'
+                },400);
+            }
             house.stop().animate({
                 width: newWidth,
                 marginLeft: -newWidth*0.5
