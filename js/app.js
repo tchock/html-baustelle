@@ -161,28 +161,40 @@ var deepDiffMapper = function() {
             
             house = $('<div class="htmlb house">');
             houseBox.append(house);
-			
-			houseBox[0].addEventListener('dragenter', function(e){
+            
+            houseBox[0].addEventListener('dragenter', function(e){
+                if (e.stopPropagation) {
+                    e.stopPropagation ();
+                }
+                else {
+                    e.cancelBubble = true;
+                }
                 self.updateZoomLevel(1);
-			},false);
-			
-			houseBox[0].addEventListener('dragover', function(e){
-			  var houseOffset = house.offset();
-			  var relX = e.pageX - houseOffset.left;
-			  var relY = e.pageY - houseOffset.top;
-			  
-			  if (e.preventDefault) {
-				e.preventDefault();
-			  }
-			  
-			  e.dataTransfer.dropEffect = 'move';
-			  
-			  if (relY >= 0 && relY <= house.height()) {
-				var levelHeight = house.height()/maxLevels;
-				var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
-				house.find('.preview').remove();
-				house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
-			  } 
+            },false);
+            
+            houseBox[0].addEventListener('dragover', function(e){
+                e.preventDefault();
+                
+                var houseOffset = house.offset();
+                var relX = e.pageX - houseOffset.left;
+                var relY = e.pageY - houseOffset.top;
+                
+                e.dataTransfer.dropEffect = 'move';
+                
+                if (relY >= 0 && relY <= house.height()) {
+                    var levelHeight = house.height()/maxLevels;
+                    var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                    house.find('.preview').remove();
+                    house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
+                    var houseLevels = house.children().not('.preview');
+                    for (var i = houseLevels.length-1; i >= 0; i--) {
+                        var bottom = (i >= currentMouseLevel) ? ((100/maxLevels)*(i))+(100/maxLevels) : (100/Math.max(maxLevels,4))*i;
+                        $(houseLevels[i]).stop().animate({
+                            height: (100/maxLevels)+"%",
+                            bottom : bottom+"%"
+                        },20);
+                    }
+                } 
 			  
 			}, false);
 			
@@ -276,6 +288,7 @@ var deepDiffMapper = function() {
         
         /// Aktualisiert das Rendering des Hauses
         this.updateRendering = function () {
+            
             house.empty();
             for (var i = houseStruct.length-1; i>=0; i--) {
                 house.append($('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))+'%; height: '+(100/Math.max(houseStruct.length,4))+'%">'));
@@ -481,14 +494,14 @@ var deepDiffMapper = function() {
             var newWidth = (house.height()/maxLevels)*oldSideRatio;
             if (diff > 0) {
 				var i = 0;
-                house.find('.level, .ground, .roof').each(function () {
+                house.stop().find('.level, .ground, .roof').each(function () {
 					$(this).stop().animate({
 						bottom: ((100/maxLevels)*(i++))+'%',
 						height: (100/maxLevels)+'%'
 					},400);
 				});
             }
-            house.animate({
+            house.stop().animate({
                 width: newWidth,
                 marginLeft: -newWidth*0.5
             },400);
