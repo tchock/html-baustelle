@@ -36,6 +36,25 @@
         
         var updatedLines = [1,3];
 
+		// Drag and Drop handler
+		
+		function handleDragStart(e) {
+			e.dataTransfer.effectAllowed = 'copy';
+			e.dataTransfer.setData('text/html', this.innerHTML);
+		}
+		
+		function handleDragEnter(e) {
+		}
+		
+		function handleDragLeave(e) {
+		}
+		
+		function handleDrop(e) {
+		}
+		
+		function handleDragEnd(e) {
+		}
+		
         ///
         /// Initialization
         ///
@@ -104,9 +123,7 @@
         
         function addIcon (unit) {
             elementList.append(unit.getIcon());
-            unit.getIcon().on('click', function(e){
-                
-            });
+            unit.getIcon()[0].addEventListener('dragstart', handleDragStart, false);
         }
         
         this.addUnitList = function (unitList) {
