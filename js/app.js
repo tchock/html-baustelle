@@ -159,10 +159,12 @@ var deepDiffMapper = function() {
             
             house = $('<div class="htmlb house">');
             houseBox.append(house);
+            /*
             house.append($('<div class="htmlb asset level">'));
             house.append($('<div class="htmlb asset level" style="bottom: 25%">'));
             house.append($('<div class="htmlb asset level" style="bottom: 50%">'));
             house.append($('<div class="htmlb asset roof" style="bottom: 75%">'));
+            */
             
             // Element Selection
             elementList = $('<ul class="htmlb element-list">');
@@ -229,7 +231,16 @@ var deepDiffMapper = function() {
             });
             self.updateEditor();
             self.highlightChangedLines();
+            self.updateRendering();
             self.updateZoomLevel(0);
+        }
+        
+        /// Aktualisiert das Rendering des Hauses
+        this.updateRendering = function () {
+            house.empty();
+            for (var i = houseStruct.length-1; i>=0; i--) {
+                house.append($('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))+'%; height: '+(100/Math.max(houseStruct.length,4))+'%">'));
+            }
         }
         
         this.updateEditor = function () {
@@ -356,6 +367,7 @@ var deepDiffMapper = function() {
                 console.log(diffStruct);
                 */
                 removeDiffNotes(houseStruct); // rauslöschen! Muss in die Render Update Methode benutzen, nachdem neu gezeichnet wurde
+                self.updateRendering();
                 self.updateZoomLevel(0);
                 
                 
