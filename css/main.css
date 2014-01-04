@@ -65,6 +65,15 @@
   z-index: 10000;
 }
 
+#debug-output{
+  font-family: Menlo, Consolas, Monaco, "Lucida Console", monospace;
+  tab-size: 2;
+  width: 600px;
+  height: 300px;
+  position: relative;
+  top: -80px;
+} 
+
 .line-highlight {
   background-color:#2d593d;
 }
