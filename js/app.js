@@ -156,11 +156,37 @@ var deepDiffMapper = function() {
             
             house = $('<div class="htmlb house">');
             houseBox.append(house);
+			
+			houseBox[0].addEventListener('dragenter', function(e){
+			  console.log("enter");
+			},false);
+			
+			houseBox[0].addEventListener('dragover', function(e){
+			  var houseOffset = house.offset();
+			  var relX = e.pageX - houseOffset.left;
+			  var relY = e.pageY - houseOffset.top;
+			  
+			  if (e.preventDefault) {
+				e.preventDefault();
+			  }
+			  
+			  e.dataTransfer.dropEffect = 'move';
+			  
+			  console.log("over");
+			  
+			}, false);
+			
+			houseBox[0].addEventListener('dragleave', function(e){
+			  console.log("leave");
+			},false);
+			
+			/*
             house.append($('<div class="htmlb asset level">'));
             house.append($('<div class="htmlb asset level" style="bottom: 25%">'));
             house.append($('<div class="htmlb asset level" style="bottom: 50%">'));
             house.append($('<div class="htmlb asset roof" style="bottom: 75%">'));
-            
+            */
+			
             // Element Selection
             elementList = $('<ul class="htmlb element-list">');
             self.append(elementList);
@@ -185,7 +211,7 @@ var deepDiffMapper = function() {
         function addIcon (unit) {
             elementList.append(unit.getIcon());
             unit.getIcon()[0].addEventListener('dragstart', function(e){
-				e.dataTransfer.effectAllowed = 'copy';
+				e.dataTransfer.effectAllowed = 'move';
 				e.dataTransfer.setData('text/html', this.innerHTML);
 			}, false);
         }
