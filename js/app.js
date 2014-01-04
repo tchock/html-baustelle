@@ -180,8 +180,10 @@ var deepDiffMapper = function() {
 				var levelHeight = house.height()/maxLevels;
 				var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
 				house.find('.preview').remove();
-				house.append($('<div class="htmlb asset level preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%">'));
+				house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%">'));
 			  } 
+			  
+			  	console.log(maxLevels - currentMouseLevel);
 			  
 			}, false);
 			
@@ -200,8 +202,8 @@ var deepDiffMapper = function() {
 			  
 			  if (relY >= 0 && relY <= house.height()) {
 				var levelHeight = house.height()/maxLevels;
-				var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
-				self.addUnitToStruct('root', dragUnit, currentMouseLevel);
+				var currentMouseLevel = Math.ceil((house.height()-relY) / levelHeight);
+				self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length - currentMouseLevel);
 				house.find('.preview').remove();
 			  }
 			
