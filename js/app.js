@@ -229,6 +229,7 @@ var deepDiffMapper = function() {
             });
             self.updateEditor();
             self.highlightChangedLines();
+            self.updateZoomLevel(0);
         }
         
         this.updateEditor = function () {
@@ -355,6 +356,8 @@ var deepDiffMapper = function() {
                 console.log(diffStruct);
                 */
                 removeDiffNotes(houseStruct); // rauslöschen! Muss in die Render Update Methode benutzen, nachdem neu gezeichnet wurde
+                self.updateZoomLevel(0);
+                
                 
                 /* TO KILL START */
                 var editorText = "";
