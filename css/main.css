@@ -154,6 +154,10 @@ h3.htmlb {
   background-size: 100% 100%;
 }
 
+.htmlb.asset.preview {
+  opacity: 0.6;
+}
+
 /********************
  UNIT ICONS
 ********************/
