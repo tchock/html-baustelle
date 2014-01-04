@@ -112,10 +112,9 @@ var deepDiffMapper = function() {
         // Gesetzte Assets
         var clouds = [];
         
-        var houseStruct = [];
-        var diffStruct = {};
+        houseStruct = [];
         
-        var updatedLines = [1,3];
+        var updatedLines = [];
 
         ///
         /// Initialization
@@ -217,11 +216,24 @@ var deepDiffMapper = function() {
             return null;
         }
         
+        this.addUnitToStruct = function (parent, unit, pos) {
+            var struct = (parent == 'root') ? houseStruct : parent.childNodes;
+            struct.splice(pos, 0, {
+                unit: unit,
+                attributes: (typeof unit.getSpec(o.lang).defaultAttributes !== 'undefined') ? unit.getSpec(o.lang).defaultAttributes : {},
+                childNodes: [],
+                diffState: 'created'
+            });
+            self.updateEditor();
+            self.highlightChangedLines();
+        }
+        
         this.updateEditor = function () {
             var editor = codeBoxElements.editor;
             var editorText = "";
+            var lineCount = {value: 1};
             $.each(houseStruct, function(index, value) {
-               var textToAdd = addTagToEditor(value, 0);
+               var textToAdd = addTagToEditor(value, 0, lineCount);
                editorText += textToAdd;
                
             });
@@ -229,7 +241,7 @@ var deepDiffMapper = function() {
             editor.setValue(editorText);
         }
         
-        function addTagToEditor (tagObject, level) {
+        function addTagToEditor (tagObject, level, lineCount) {
             var editorText = '';
             
             // Fügt Tabs hinzu, wenn gebraucht
@@ -243,11 +255,16 @@ var deepDiffMapper = function() {
             $.each(tagObject.attributes, function(key, value) {
                 attributes += ' '+key+'="'+value+'"';
             });
-            
             // Liest Tag Bezeichner aus
             var tag = tagObject.unit.getSpec(o.lang).tag;
             // liest aus, ob Element Kindelemente haben kann
             var canHaveChildNodes = tagObject.unit.getSpec(o.lang).allowChildNodes;
+            // checkt, ob neues Objekt, oder vor neuer Generierung bereits vorhanden gewesen
+            var isNewNode = (tagObject.diffState == 'created');
+            // Fügt Zeile als neu hinzu, falls sie wirklich neu ist
+            if (isNewNode) { 
+                updatedLines.push(lineCount.value) 
+            };
             // Definiert selbstschließenden Tag, wenn XML Mode und Element keine Kindelemente haben kann
             var selfclose = (o.lang == 'xml' && !canHaveChildNodes) ? '/' : '';
             
@@ -255,9 +272,10 @@ var deepDiffMapper = function() {
             editorText += tabs+'<'+tag+attributes+selfclose+'>'; // start Tag
             if (typeof tagObject.childNodes !== 'undefined' && tagObject.childNodes.length > 0) {
                 editorText += "\n"; // neue Zeile
+                ++lineCount.value;
                 // Durchgeht alle Kind Nodes
                 $.each(tagObject.childNodes, function(index, value) {
-                   var textToAdd = addTagToEditor(value, level+1); // Rekursiv neuen Code hinzufügen, level+1 für nächste Tab Reihe
+                   var textToAdd = addTagToEditor(value, level+1, lineCount); // Rekursiv neuen Code hinzufügen, level+1 für nächste Tab Reihe
                    editorText += textToAdd;
                 });
                 editorText += tabs; // Tab für schließenden Tag oder nachfolgenden Code
@@ -265,9 +283,13 @@ var deepDiffMapper = function() {
             
             // Schließender Tag, wenn Element Kindelemente haben kann und wenn kein SGML Mode
             if (o.lang != 'sgml' && canHaveChildNodes) {
+                // Fügt Zeile als neu hinzu, falls sie wirklich neu ist
+                if (isNewNode && updatedLines.indexOf(lineCount.value) <= -1) updatedLines.push(lineCount.value);
                 editorText += "</"+tag+">\n"; // End Tag
+                ++lineCount.value;
             } else {
                 editorText += "\n";
+                ++lineCount.value;
             }
             
             return editorText;
@@ -275,6 +297,7 @@ var deepDiffMapper = function() {
         
         /// Entfernt alle gehighlighteten Zeilen und leert updatedLines
         function removeEditorHighlights () {
+            console.log(updatedLines);
             for (var i = updatedLines.length-1; i>=0; i--) {
                 codeBoxElements.editor.removeLineClass(updatedLines[i]-1, 'background', 'line-highlight');
             }
@@ -310,7 +333,7 @@ var deepDiffMapper = function() {
         /// Funktion, die aufgerufen wird, wenn neuer Inhalt in Code Editor eingegeben wird
         this.checkEditor = function () {
             // Exception Handling, damit Browser nicht abstürzen, wenn Tags nicht erkann werden
-            try {
+            //try {
                 var editorValue = codeBoxElements.editor.getValue();
                 // SGML Mode Only!
                 if (o.lang == 'sgml') {
@@ -333,17 +356,17 @@ var deepDiffMapper = function() {
                 /* TO KILL START */
                 var editorText = "";
                 $.each(houseStruct, function(index, value) {
-                   var textToAdd = addTagToEditor(value, 0);
+                   var textToAdd = addTagToEditor(value, 0, {value: 0});
                    editorText += textToAdd;
                    
                 });
                 editorText = editorText.substr(0, editorText.length-1);
                 $('#debug-output').html(editorText);
                 /* TO KILL END */
-            
+            /*
             } catch (e) {
                 console.log(e.name +"==> "+ e.message);
-            }
+            }*/
         }
         
         /// Konvertiert DOM in eigene Datenstruktur
