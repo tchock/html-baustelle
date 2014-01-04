@@ -119,6 +119,7 @@ var deepDiffMapper = function() {
         var maxLevels = 4;
 		
 		var dragUnit = null;
+		var oldMouseLevel = 0;
 		
         ///
         /// Initialization
@@ -169,7 +170,7 @@ var deepDiffMapper = function() {
                 else {
                     e.cancelBubble = true;
                 }
-                self.updateZoomLevel(2);
+                self.updateZoomLevel(1);
             },false);
             
             houseBox[0].addEventListener('dragover', function(e){
@@ -181,9 +182,9 @@ var deepDiffMapper = function() {
                 
                 e.dataTransfer.dropEffect = 'move';
                 
-                if (relY >= 0 && relY <= house.height()) {
-                    var levelHeight = house.height()/maxLevels;
-                    var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                var levelHeight = house.height()/maxLevels;
+                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                if (relY >= 0 && relY <= house.height() && oldMouseLevel != currentMouseLevel) {
                     house.find('.preview').remove();
                     house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
                     var houseLevels = house.children().not('.preview');
@@ -194,7 +195,8 @@ var deepDiffMapper = function() {
                             bottom : bottom+"%"
                         },20);
                     }
-                } 
+                }
+                oldMouseLevel = currentMouseLevel; 
 			  
 			}, false);
 			
