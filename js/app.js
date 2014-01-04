@@ -163,7 +163,7 @@ var deepDiffMapper = function() {
             houseBox.append(house);
 			
 			houseBox[0].addEventListener('dragenter', function(e){
-    		          self.updateZoomLevel(1);
+                self.updateZoomLevel(1);
 			},false);
 			
 			houseBox[0].addEventListener('dragover', function(e){
@@ -185,10 +185,6 @@ var deepDiffMapper = function() {
 			  } 
 			  
 			}, false);
-			
-			houseBox[0].addEventListener('dragleave', function(e){
-			  house.find('.preview').remove();
-			},false);
 			
 			houseBox[0].addEventListener('drop', function(e){
                 var houseOffset = house.offset();
@@ -235,6 +231,9 @@ var deepDiffMapper = function() {
 				e.dataTransfer.setData('unit', unit);
 				dragUnit = unit;
 			}, false);
+            elementList[0].addEventListener('dragend', function(e){
+                house.find('.preview').remove();
+			},false);
         }
         
         this.addUnitList = function (unitList) {
