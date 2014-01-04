@@ -163,6 +163,7 @@ var deepDiffMapper = function() {
             houseBox.append(house);
 			
 			houseBox[0].addEventListener('dragenter', function(e){
+				self.updateZoomLevel(1);
 			},false);
 			
 			houseBox[0].addEventListener('dragover', function(e){
