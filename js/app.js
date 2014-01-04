@@ -187,6 +187,7 @@ var deepDiffMapper = function() {
 			}, false);
 			
 			houseBox[0].addEventListener('dragleave', function(e){
+			  house.find('.preview').remove();
 			},false);
 			
 			houseBox[0].addEventListener('drop', function(e){
@@ -197,11 +198,12 @@ var deepDiffMapper = function() {
 			  if (e.stopPropagation) {
 				e.stopPropagation();
 			  }
-			  console.log(dragUnit);
+			  
 			  if (relY >= 0 && relY <= house.height()) {
 				var levelHeight = house.height()/maxLevels;
 				var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
 				self.addUnitToStruct('root', dragUnit, currentMouseLevel);
+				house.find('.preview').remove();
 			  }
 			
 			});
