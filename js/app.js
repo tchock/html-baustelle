@@ -111,10 +111,13 @@ var deepDiffMapper = function() {
         
         // Gesetzte Assets
         var clouds = [];
-        
+        // Haus Datenstruktut
         houseStruct = [];
-        
+        // Codezeilen, die gehighlightet werden sollen
         var updatedLines = [];
+        // Anzahl der Stockwerke, die von der Kamera aufgefasst werden sollen
+        var maxLevels = 4;
+
         ///
         /// Initialization
         ///
@@ -441,7 +444,16 @@ var deepDiffMapper = function() {
         this.getStruct = function () {
             return houseStruct;
         }
-                
+        
+        /// Aktualisiert das Zoomlevel und ändert daraufhin die Größe des Hauses
+        /// @param diff Differenz zur Anzahl der Werte in der Datenstruktur (z.B. 1, wenn ein neues Stockwerk bei DragDrop hinzugefügt werden soll)
+        this.updateZoomLevel = function (diff) {
+            var oldLevel = maxLevels;
+            maxLevels = Math.max(houseStruct.length+diff, 4);
+            var oldSideRatio = (house.height()/oldLevel)/house.width();
+            console.log(oldSideRatio);
+            console.log((house.height()/maxLevels)*oldSideRatio);
+        }
         
         this.addCloud = function (type, posY, speed) {
             clouds.push(new htmlbCloud(self, type, posY, speed));   
