@@ -255,6 +255,7 @@ var deepDiffMapper = function() {
             });
             self.updateEditor();
             self.highlightChangedLines();
+            self.updateZoomLevel(0);
         }
         
         this.updateEditor = function () {
@@ -381,6 +382,8 @@ var deepDiffMapper = function() {
                 console.log(diffStruct);
                 */
                 removeDiffNotes(houseStruct); // rauslöschen! Muss in die Render Update Methode benutzen, nachdem neu gezeichnet wurde
+                self.updateZoomLevel(0);
+                
                 
                 /* TO KILL START */
                 var editorText = "";
@@ -450,9 +453,12 @@ var deepDiffMapper = function() {
         this.updateZoomLevel = function (diff) {
             var oldLevel = maxLevels;
             maxLevels = Math.max(houseStruct.length+diff, 4);
-            var oldSideRatio = (house.height()/oldLevel)/house.width();
-            console.log(oldSideRatio);
-            console.log((house.height()/maxLevels)*oldSideRatio);
+            var oldSideRatio = house.width()/(house.height()/oldLevel);
+            var newWidth = (house.height()/maxLevels)*oldSideRatio;
+            house.stop().animate({
+                width: newWidth,
+                marginLeft: -newWidth*0.5
+            },400);
         }
         
         this.addCloud = function (type, posY, speed) {
