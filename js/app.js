@@ -161,7 +161,6 @@ var deepDiffMapper = function() {
             
             house = $('<div class="htmlb house">');
             houseBox.append(house);
-<<<<<<< HEAD
 			
 			houseBox[0].addEventListener('dragenter', function(e){
 			},false);
