@@ -273,8 +273,6 @@ var deepDiffMapper = function() {
             });
             self.updateEditor();
             self.highlightChangedLines();
-            self.updateRendering();
-            self.updateZoomLevel(0);
         }
         
         /// Aktualisiert das Rendering des Hauses
@@ -283,6 +281,8 @@ var deepDiffMapper = function() {
             for (var i = houseStruct.length-1; i>=0; i--) {
                 house.append($('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))+'%; height: '+(100/Math.max(houseStruct.length,4))+'%">'));
             }
+            console.log("update rendering");
+            self.updateZoomLevel(0);
         }
         
         this.updateEditor = function () {
@@ -410,7 +410,6 @@ var deepDiffMapper = function() {
                 */
                 removeDiffNotes(houseStruct); // rauslöschen! Muss in die Render Update Methode benutzen, nachdem neu gezeichnet wurde
                 self.updateRendering();
-                self.updateZoomLevel(0);
                 
                 
                 /* TO KILL START */
@@ -479,6 +478,7 @@ var deepDiffMapper = function() {
         /// Aktualisiert das Zoomlevel und ändert daraufhin die Größe des Hauses
         /// @param diff Differenz zur Anzahl der Werte in der Datenstruktur (z.B. 1, wenn ein neues Stockwerk bei DragDrop hinzugefügt werden soll)
         this.updateZoomLevel = function (diff) {
+            console.log("penis");
             var oldLevel = maxLevels;
             maxLevels = Math.max(houseStruct.length+diff, 4);
             var oldSideRatio = house.width()/(house.height()/oldLevel);
