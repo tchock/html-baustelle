@@ -169,8 +169,7 @@ var deepDiffMapper = function() {
                 else {
                     e.cancelBubble = true;
                 }
-                self.updateZoomLevel(1);
-
+                self.updateZoomLevel(2);
             },false);
             
             houseBox[0].addEventListener('dragover', function(e){
