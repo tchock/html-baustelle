@@ -35,25 +35,6 @@
         var houseStruct = [];
         
         var updatedLines = [1,3];
-
-		// Drag and Drop handler
-		
-		function handleDragStart(e) {
-			e.dataTransfer.effectAllowed = 'copy';
-			e.dataTransfer.setData('text/html', this.innerHTML);
-		}
-		
-		function handleDragEnter(e) {
-		}
-		
-		function handleDragLeave(e) {
-		}
-		
-		function handleDrop(e) {
-		}
-		
-		function handleDragEnd(e) {
-		}
 		
         ///
         /// Initialization
@@ -120,10 +101,13 @@
             if (unit.getSpec(o.lang) != null)
                 addIcon(unit);
         }
-        
+		
         function addIcon (unit) {
             elementList.append(unit.getIcon());
-            unit.getIcon()[0].addEventListener('dragstart', handleDragStart, false);
+            unit.getIcon()[0].addEventListener('dragstart', function(e){
+				e.dataTransfer.effectAllowed = 'copy';
+				e.dataTransfer.setData('text/html', this.innerHTML);
+			}, false);
         }
         
         this.addUnitList = function (unitList) {
