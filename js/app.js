@@ -186,14 +186,14 @@ var deepDiffMapper = function() {
                 var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
                 if (relY >= 0 && relY <= house.height() && oldMouseLevel != currentMouseLevel) {
                     house.find('.preview').remove();
-                    house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
+                    house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+(100/maxLevels*currentMouseLevel+3)+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
                     var houseLevels = house.children().not('.preview');
                     for (var i = houseLevels.length-1; i >= 0; i--) {
-                        var bottom = (i >= currentMouseLevel) ? ((100/maxLevels)*(i))+(100/maxLevels) : (100/Math.max(maxLevels,4))*i;
+                        var bottom = (i >= currentMouseLevel) ? ((100/maxLevels)*(i))+(100/maxLevels)+6 : (100/Math.max(maxLevels,4))*i;
                         $(houseLevels[i]).stop().animate({
                             height: (100/maxLevels)+"%",
                             bottom : bottom+"%"
-                        },20);
+                        },100);
                     }
                 }
                 oldMouseLevel = currentMouseLevel; 
@@ -496,7 +496,7 @@ var deepDiffMapper = function() {
             var newWidth = (house.height()/maxLevels)*oldSideRatio;
             if (diff > 0) {
 				var i = 0;
-                house.stop().find('.level, .ground, .roof').each(function () {
+                house.stop().find('.level, .ground, .roof').not('.preview').each(function () {
 					$(this).stop().animate({
 						bottom: ((100/maxLevels)*(i++))+'%',
 						height: (100/maxLevels)+'%'
