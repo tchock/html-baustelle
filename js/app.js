@@ -199,12 +199,12 @@ var deepDiffMapper = function() {
 				e.stopPropagation();
 			  }
 			  
-            if (relY >= 0 && relY <= house.height()) {
-                var levelHeight = house.height()/maxLevels;
-                var currentMouseLevel = Math.ceil((house.height()-relY) / levelHeight);
-                self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length - currentMouseLevel);
-                house.find('.preview').remove();
-                }
+			  if (relY >= 0 && relY <= house.height()) {
+				var levelHeight = house.height()/maxLevels;
+				var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
+				self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length -1 - currentMouseLevel);
+				house.find('.preview').remove();
+			  }
 			});
 			
             // Element Selection
