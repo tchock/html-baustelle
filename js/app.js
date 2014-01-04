@@ -192,7 +192,7 @@ var deepDiffMapper = function() {
 			},false);
 			
 			houseBox[0].addEventListener('drop', function(e){
-			  var houseOffset = house.offset();
+                var houseOffset = house.offset();
 			  var relX = e.pageX - houseOffset.left;
 			  var relY = e.pageY - houseOffset.top;
 			  
@@ -200,12 +200,12 @@ var deepDiffMapper = function() {
 				e.stopPropagation();
 			  }
 			  
-			  if (relY >= 0 && relY <= house.height()) {
-				var levelHeight = house.height()/maxLevels;
-				var currentMouseLevel = Math.ceil((house.height()-relY) / levelHeight);
-				self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length - currentMouseLevel);
-				house.find('.preview').remove();
-			  }
+            if (relY >= 0 && relY <= house.height()) {
+                var levelHeight = house.height()/maxLevels;
+                var currentMouseLevel = Math.ceil((house.height()-relY) / levelHeight);
+                self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length - currentMouseLevel);
+                house.find('.preview').remove();
+			}
 			
 			});
 			
