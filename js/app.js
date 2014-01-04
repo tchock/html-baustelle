@@ -117,7 +117,9 @@ var deepDiffMapper = function() {
         var updatedLines = [];
         // Anzahl der Stockwerke, die von der Kamera aufgefasst werden sollen
         var maxLevels = 4;
-
+		
+		var dragUnit = null;
+		
         ///
         /// Initialization
         ///
@@ -161,7 +163,6 @@ var deepDiffMapper = function() {
             houseBox.append(house);
 			
 			houseBox[0].addEventListener('dragenter', function(e){
-			  console.log("enter");
 			},false);
 			
 			houseBox[0].addEventListener('dragover', function(e){
@@ -175,13 +176,34 @@ var deepDiffMapper = function() {
 			  
 			  e.dataTransfer.dropEffect = 'move';
 			  
-			  console.log("over");
+			  if (relY >= 0 && relY <= house.height()) {
+				var levelHeight = house.height()/maxLevels;
+				var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
+				house.find('.preview').remove();
+				house.append($('<div class="htmlb asset level preview" style="bottom: '+100/maxLevels*currentMouseLevel+'%">'));
+			  } 
 			  
 			}, false);
 			
 			houseBox[0].addEventListener('dragleave', function(e){
-			  console.log("leave");
 			},false);
+			
+			houseBox[0].addEventListener('drop', function(e){
+			  var houseOffset = house.offset();
+			  var relX = e.pageX - houseOffset.left;
+			  var relY = e.pageY - houseOffset.top;
+			  
+			  if (e.stopPropagation) {
+				e.stopPropagation();
+			  }
+			  console.log(dragUnit);
+			  if (relY >= 0 && relY <= house.height()) {
+				var levelHeight = house.height()/maxLevels;
+				var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
+				self.addUnitToStruct('root', dragUnit, currentMouseLevel);
+			  }
+			
+			});
 			
 			/*
             house.append($('<div class="htmlb asset level">'));
@@ -215,7 +237,8 @@ var deepDiffMapper = function() {
             elementList.append(unit.getIcon());
             unit.getIcon()[0].addEventListener('dragstart', function(e){
 				e.dataTransfer.effectAllowed = 'move';
-				e.dataTransfer.setData('text/html', this.innerHTML);
+				e.dataTransfer.setData('unit', unit);
+				dragUnit = unit;
 			}, false);
         }
         
