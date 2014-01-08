@@ -163,6 +163,14 @@ var deepDiffMapper = function() {
             house = $('<div class="htmlb house">');
             houseBox.append(house);
             
+            house[0].addEventListener('dragover', function(e){
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            }, false);
+            
+            house[0].addEventListener('drop', function(e){
+            }, false);
+            
             houseBox[0].addEventListener('dragenter', function(e){
                 if (e.stopPropagation) {
                     e.stopPropagation ();
@@ -175,15 +183,14 @@ var deepDiffMapper = function() {
             
             houseBox[0].addEventListener('dragover', function(e){
                 e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
                 
                 var houseOffset = house.offset();
                 var relX = e.pageX - houseOffset.left;
                 var relY = e.pageY - houseOffset.top;
-                
-                e.dataTransfer.dropEffect = 'move';
-                
                 var levelHeight = house.height()/maxLevels;
                 var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                
                 if (relY >= 0 && relY <= house.height() && oldMouseLevel != currentMouseLevel) {
                     house.find('.preview').remove();
                     house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+(100/maxLevels*currentMouseLevel+3)+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
