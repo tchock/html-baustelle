@@ -167,36 +167,40 @@ var deepDiffMapper = function() {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
             }, false);
-            
+                        
             house[0].addEventListener('drop', function(e){
             }, false);
-            
+                        
             houseBox[0].addEventListener('dragenter', function(e){
-                if (e.stopPropagation) {
-                    e.stopPropagation ();
-                }
-                else {
-                    e.cancelBubble = true;
-                }
-                self.updateZoomLevel(1);
+                
             },false);
-            
+                        
             houseBox[0].addEventListener('dragover', function(e){
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
                 
+                // berechne die Mausposition relativ zur Position des Hauses
                 var houseOffset = house.offset();
                 var relX = e.pageX - houseOffset.left;
                 var relY = e.pageY - houseOffset.top;
-                var levelHeight = house.height()/maxLevels;
+                
+                // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
+                var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
                 var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
                 
+                // Anzeigen einer Vorschau des einzufügenden Stockwerks + Animation der restlichen Stockwerke
+                // Wenn Maus innerhalb des Hauses und (zur Performanceverbesserung) Veränderung zwischen des ausgewählten Stockwerks stattgefunden hat
                 if (relY >= 0 && relY <= house.height() && oldMouseLevel != currentMouseLevel) {
-                    house.find('.preview').remove();
+                    house.find('.preview').remove(); // lösche alle allten Vorschau Objekte (max 1)
+                    // Füge neues Vorschauelement an der gewünschten Stelle ein
                     house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+(100/maxLevels*currentMouseLevel+3)+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
-                    var houseLevels = house.children().not('.preview');
+                    var houseLevels = house.children().not('.preview'); // erhalte die Stockwerke, die keine Vorschau sind
+                    // Durch gehe alle Stockwerke
                     for (var i = houseLevels.length-1; i >= 0; i--) {
+                        // Berechne die neue Position: Wenn Stockwerk über dem aktuellen Cursor liegt, schiebe ihn um eine Stockwerkhöhe hoch, ansonsten schiebe ihn runter oder lasse ihn bei dem alten Wert
                         var bottom = (i >= currentMouseLevel) ? ((100/maxLevels)*(i))+(100/maxLevels)+6 : (100/Math.max(maxLevels,4))*i;
+                        // Animiere das Stockwerk auf die neue Bottom Position und die richtige Höhe
+                        
                         $(houseLevels[i]).stop().animate({
                             height: (100/maxLevels)+"%",
                             bottom : bottom+"%"
@@ -251,9 +255,13 @@ var deepDiffMapper = function() {
 				e.dataTransfer.effectAllowed = 'move';
 				e.dataTransfer.setData('unit', unit);
 				dragUnit = unit;
+				if (unit.parentAllowed('root', o.lang)) {
+    				    self.updateZoomLevel(2);
+				}
 			}, false);
             elementList[0].addEventListener('dragend', function(e){
                 house.find('.preview').remove();
+                self.updateZoomLevel(0);
 			},false);
         }
         
@@ -297,7 +305,6 @@ var deepDiffMapper = function() {
         
         /// Aktualisiert das Rendering des Hauses
         this.updateRendering = function () {
-            
             house.empty();
             for (var i = houseStruct.length-1; i>=0; i--) {
                 house.append($('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))+'%; height: '+(100/Math.max(houseStruct.length,4))+'%">'));
