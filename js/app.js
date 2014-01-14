@@ -190,7 +190,7 @@ var deepDiffMapper = function() {
                 
                 // Anzeigen einer Vorschau des einzufügenden Stockwerks + Animation der restlichen Stockwerke
                 // Wenn Maus innerhalb des Hauses und (zur Performanceverbesserung) Veränderung zwischen des ausgewählten Stockwerks stattgefunden hat
-                if (relY >= 0 && relY <= house.height() && oldMouseLevel != currentMouseLevel) {
+                if (relY >= 0 && relY <= house.height() && oldMouseLevel != currentMouseLevel && dragUnit.parentAllowed('root',o.lang)) {
                     house.find('.preview').remove(); // lösche alle allten Vorschau Objekte (max 1)
                     // Füge neues Vorschauelement an der gewünschten Stelle ein
                     house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+(100/maxLevels*currentMouseLevel+3)+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
