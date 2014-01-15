@@ -119,6 +119,18 @@ h3.htmlb {
   background-color: #424d55;
 }
 
+.htmlb.complete-button {
+  width: 70px;
+  height: 70px;
+  text-indent: -1000px;
+  overflow: hidden;
+  background-color: #40ff59;
+  border-radius: 35px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+
 .htmlb.house {
   width: 37.5%;
   height: 90%;
@@ -201,16 +213,13 @@ h3.htmlb {
   background-position: 75% 0;
 }
 
-<<<<<<< HEAD
-.htmlb.unit-icon.dragstart{
-  opacity: 0.4;
-}
-=======
 .htmlb.unit-icon.unit-ground {
   background-position: 100% 0;
 }
 
->>>>>>> origin/master
+.htmlb.unit-icon.dragstart{
+  opacity: 0.4;
+}
 
 
 /********************

@@ -118,8 +118,16 @@ var deepDiffMapper = function() {
         // Anzahl der Stockwerke, die von der Kamera aufgefasst werden sollen
         var maxLevels = 4;
 		
+		// Baueinheit, die grade gedragged wird
 		var dragUnit = null;
+		// bisheriges Stockwerk, das per dragover angewählt wurde
 		var oldMouseLevel = 0;
+		
+		// Aufgabe um Level zu bestehen
+		var challenges = [];
+		
+		// Aufgaben alle bestanden gewonnen?
+		var challengesCompleted = false;
 		
         ///
         /// Initialization
@@ -248,27 +256,27 @@ var deepDiffMapper = function() {
             if (unit.getSpec(o.lang) != null)
                 addIcon(unit);
         }
-		
+        
         function addIcon (unit) {
             elementList.append(unit.getIcon());
             unit.getIcon()[0].addEventListener('dragstart', function(e){
-				e.dataTransfer.effectAllowed = 'move';
-				e.dataTransfer.setData('unit', unit);
-				dragUnit = unit;
-				if (unit.parentAllowed('root', o.lang)) {
-    				    self.updateZoomLevel(2);
-				}
-			}, false);
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('unit', unit);
+                dragUnit = unit;
+                if (unit.parentAllowed('root', o.lang)) {
+                    self.updateZoomLevel(2);
+                }
+            }, false);
             elementList[0].addEventListener('dragend', function(e){
                 house.find('.preview').remove();
                 self.updateZoomLevel(0);
-			},false);
+            },false);
         }
         
         this.addUnitList = function (unitList) {
-            $.each(unitList, function(unitName,unitObj){
-                self.addUnit(unitObj);
-            });
+            for (unitObj in unitList){
+                self.addUnit(unitList[unitObj]);
+            };
         }
         
         /// Gibt die Unit zurück, die zu einem angegebenen Tag passt
@@ -301,6 +309,20 @@ var deepDiffMapper = function() {
             });
             self.updateEditor();
             self.highlightChangedLines();
+        }
+        
+        // Fügt eine Aufgabe hinzu
+        // @param challenge Aufgabe, die hinzugefügt werden soll
+        this.addChallenge = function (challenge) {
+            challenges.push(challenge);
+        }
+        
+        // Fügt eine Liste von Aufgaben hinzu
+        // @param callengeList Aufgabenliste, die hinzugefügt werden soll
+        this.addChallengeList = function (challengeList) {
+            for (challenge in challengeList) {
+                self.addChallenge(challengeList[challenge]);
+            }
         }
         
         /// Aktualisiert das Rendering des Hauses
@@ -431,6 +453,7 @@ var deepDiffMapper = function() {
                 var newStruct = convertDomToStruct(editorDOM, 'root');
                 
                 houseStruct = deepDiffMapper.map(houseStruct, newStruct);
+                self.checkIfWon();
                 /*console.log(newStruct);
                 console.log(diffStruct);
                 */
@@ -499,6 +522,67 @@ var deepDiffMapper = function() {
         
         this.getStruct = function () {
             return houseStruct;
+        }
+        
+        // Prüft, ob Spiel gewonnen
+        this.checkIfWon = function () {
+            var challengesCompleted = 0;
+            for ( c in challenges ) {
+                var currentUnitCount = 0;
+                
+                // wenn Root Level Objekt ...
+                if (challenges[c].getUnit().parentAllowed('root', o.lang)) {
+                    for (u in houseStruct) {
+                        // wenn Unit übereinstimmt ...
+                        if (houseStruct[u].unit == challenges[c].getUnit()) {
+                            currentUnitCount++; // ... erhöhe Anzahl
+                        }
+                    }
+                // wenn Stockwerk egal ...
+                } else if (challenges[c].getLevel() == 'all') {
+                    // durchgehe alle Stockwerke
+                    for (var i = houseStruct.length-1; i>= 0; i--) {
+                        // durchgehe alle Baueinheiten innerhalb dieses Stockwerks
+                        for (u in houseStruct[i].childNodes) {
+                            // wenn diese Einheit übereinstimmt ...
+                            if (houseStruct[i].childNodes[u].unit == challenges[c].getUnit()) {
+                                currentUnitCount++; // ... erhöhe Anzahl
+                            }
+                        }
+                    }
+                // wenn Stockwerk vorhanden ist, also es mehr Stockwerke als das angegebene gibt
+                } else if (houseStruct.length >= challenges[c].getLevel() && typeof houseStruct[challenges[c].getLevel()-1].childNodes !== 'undefined') {
+                    
+                    // durchgehe alle Baueinheiten innerhalb dieses Stockwerks
+                    for (u in houseStruct[houseStruct.length-challenges[c].getLevel()].childNodes) {
+                        // wenn diese Einheit übereinstimmt ...
+                        if (houseStruct[houseStruct.length-challenges[c].getLevel()].childNodes[u].unit == challenges[c].getUnit()) {
+                            currentUnitCount++; // ... erhöhe Anzahl
+                        }
+                    }
+                    console.log('anzahl Elemente:' + currentUnitCount);
+                }
+                
+        
+                
+                // Wenn Anzahl übereinstimmt ...
+                if (( challenges[c].getType() == 'exact' && challenges[c].getCount() == currentUnitCount )        // Wenn genau so viele Elemente gebaut wurden
+                    || ( challenges[c].getType() == 'minimum' && challenges[c].getCount() <= currentUnitCount )   // Wenn wenigstens so viele Elemente gebaut wurden
+                    || ( challenges[c].getType() == 'maximum' && challenges[c].getCount() >= currentUnitCount )   // Wenn maximal so viele Elemente gebaut wurden
+                ) {
+                    challengesCompleted++; // erhöhe geschaffte Aufgaben
+                }
+                
+            }
+            
+            // Wenn Anzahl komplettierter Aufgaben mit Anzahl Aufgaben übereinstimmt ...
+            if (challengesCompleted == challenges.length) {
+                challengesCompleted = true; // ... hat der Spieler gewonnen
+                houseBox.append('<a href="#" class="htmlb complete-button">Spiel abschließen</a>');
+            } else {
+                challengesCompleted = false;
+                houseBox.find('.complete-button').remove();
+            }
         }
         
         /// Aktualisiert das Zoomlevel und ändert daraufhin die Größe des Hauses
@@ -621,8 +705,47 @@ var deepDiffMapper = function() {
         }
     }
     
+    // Aufgabe
+    // @param interner Name Name der Aufgabe
+    // @param unit Einheit, die in der Aufgabe gebaut werden soll
+    // @param level Stockwerk, in das gebaut werden soll. 'all', wenn Stockwerk egal
+    // @param count Anzahl der Elemente, die gebaut werden sollen
+    // @param type Typ der Aufgabe: 'minimum', 'exact', 'maximum'
+    htmlbChallenge = function( name, unit, level, count , type) {
+        
+        if (typeof type === 'undefined') {
+            var type = 'minimum';
+        }
+        
+        // Erhalte den Namen
+        this.getName = function () {
+            return name;
+        }
+        
+        // Erhalte die Einheit
+        this.getUnit = function () {
+            return unit;
+        }
+        
+        // Erhalte das Stockwerk, in dem das Objekt gebaut werden soll
+        this.getLevel = function () {
+            return level;
+        }
+        
+        // Erhalte die Anzahl der zu bauenden Einheiten
+        this.getCount = function () {
+            return count;
+        }
+        
+        // Erhalte dem Typ der Aufgabe
+        this.getType = function () {
+            return type;
+        }
+        
+    }
+    
     // Cloud
-    htmlbCloud = function(lot, type, posY, speed) {
+    htmlbCloud = function( lot, type, posY, speed ) {
         
         var self = this;
         var assetDOM = $('<div class="htmlb asset cloud-'+type+'">');
