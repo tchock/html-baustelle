@@ -45,6 +45,8 @@
   
   /* Background */
   background-image: url('../img/landside.svg');
+  background-size: 200%;
+  background-position: bottom;
 }
 
 .htmlb.code-box {
@@ -144,7 +146,8 @@ h3.htmlb {
   -moz-transform: rotateX(-20deg);
 }
 
-.htmlb.asset.level {
+.htmlb.asset.level,
+.htmlb.asset.ground {
   width: 87.5%;
   height: 25%;
   background-color: #90545d;
@@ -154,6 +157,7 @@ h3.htmlb {
   margin-left: -43.75%;
   background-image: none;
 }
+
 
 .htmlb.asset.roof {
   width: 100%;

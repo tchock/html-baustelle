@@ -78,6 +78,18 @@ var deepDiffMapper = function() {
     }
 }();
 
+
+// Request Animation Frame. Vielen Dank an Paul Irish (www.paulirish.com)
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
+
 (function ( $ ) {
     
     // HTML Baustelle Main Object
@@ -105,30 +117,32 @@ var deepDiffMapper = function() {
         };
         var houseBox;
         var house;
+        var landside;
     
         var elementList;
         var units = [];
         
         // Gesetzte Assets
-        var clouds = [];
+        clouds = [];
+        var lastCloudAdded = 0;
         // Haus Datenstruktut
         houseStruct = [];
         // Codezeilen, die gehighlightet werden sollen
         var updatedLines = [];
         // Anzahl der Stockwerke, die von der Kamera aufgefasst werden sollen
         var maxLevels = 4;
-		
-		// Baueinheit, die grade gedragged wird
-		var dragUnit = null;
-		// bisheriges Stockwerk, das per dragover angewählt wurde
-		var oldMouseLevel = 0;
-		
-		// Aufgabe um Level zu bestehen
-		var challenges = [];
-		
-		// Aufgaben alle bestanden gewonnen?
-		var challengesCompleted = false;
-		
+        
+        // Baueinheit, die grade gedragged wird
+        var dragUnit = null;
+        // bisheriges Stockwerk, das per dragover angewählt wurde
+        var oldMouseLevel = 0;
+        
+        // Aufgabe um Level zu bestehen
+        var challenges = [];
+        
+        // Aufgaben alle bestanden gewonnen?
+        var challengesCompleted = false;
+        
         ///
         /// Initialization
         ///
@@ -141,7 +155,8 @@ var deepDiffMapper = function() {
             contentBox.append('<div class="htmlb sky">');
             
             // Landside
-            contentBox.append('<div class="htmlb landside">');
+            landside = $('<div class="htmlb landside">');
+            contentBox.append(landside);
             
             // Code Box
             
@@ -207,35 +222,36 @@ var deepDiffMapper = function() {
                     for (var i = houseLevels.length-1; i >= 0; i--) {
                         // Berechne die neue Position: Wenn Stockwerk über dem aktuellen Cursor liegt, schiebe ihn um eine Stockwerkhöhe hoch, ansonsten schiebe ihn runter oder lasse ihn bei dem alten Wert
                         var bottom = (i >= currentMouseLevel) ? ((100/maxLevels)*(i))+(100/maxLevels)+6 : (100/Math.max(maxLevels,4))*i;
-                        // Animiere das Stockwerk auf die neue Bottom Position und die richtige Höhe
+                        bottom = house.height()/100*bottom; // berechne Prozent in Pixel
                         
-                        $(houseLevels[i]).stop().animate({
-                            height: (100/maxLevels)+"%",
-                            bottom : bottom+"%"
+                        // Animiere das Stockwerk auf die neue Bottom Position und die richtige Höhe
+                        $(houseLevels[i]).stop().transition({
+                            height: house.height()/100*(100/maxLevels)+'px',
+                            bottom: bottom
                         },100);
                     }
                 }
                 oldMouseLevel = currentMouseLevel; 
-			  
-			}, false);
-			
-			houseBox[0].addEventListener('drop', function(e){
+              
+            }, false);
+            
+            houseBox[0].addEventListener('drop', function(e){
                 var houseOffset = house.offset();
-			  var relX = e.pageX - houseOffset.left;
-			  var relY = e.pageY - houseOffset.top;
-			  
-			  if (e.stopPropagation) {
-				e.stopPropagation();
-			  }
-			  
-			  if (relY >= 0 && relY <= house.height()) {
-				var levelHeight = house.height()/maxLevels;
-				var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
-				self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length -1 - currentMouseLevel);
-				house.find('.preview').remove();
-			  }
-			});
-			
+              var relX = e.pageX - houseOffset.left;
+              var relY = e.pageY - houseOffset.top;
+              
+              if (e.stopPropagation) {
+                e.stopPropagation();
+              }
+              
+              if (relY >= 0 && relY <= house.height()) {
+                var levelHeight = house.height()/maxLevels;
+                var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
+                self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length -1 - currentMouseLevel);
+                house.find('.preview').remove();
+              }
+            });
+            
             // Element Selection
             elementList = $('<ul class="htmlb element-list">');
             self.append(elementList);
@@ -244,6 +260,23 @@ var deepDiffMapper = function() {
             codeBoxElements.editor.on('change', function(e){
                 self.checkEditor();
             });
+            
+            // Cloud add Loop mit request AnimFrame
+            function cloudLoop(){
+                requestAnimFrame(cloudLoop);
+                var date = new Date;
+                var currentTime = date.getTime();
+                // Wenn weniger als 3 Wolken vorhanden sind und seit hinzufügen der letzter Wolke mindestens 3 Sekunden vergangen sind ...
+                if (currentTime - lastCloudAdded > 12000 && clouds.length < 4) {
+                    var scale = 0.3+0.7*Math.random();
+                    var pos = 5+40*Math.random();
+                    var speed = 60+20*(1-scale);
+                    self.addCloud(1, pos+'%', scale, speed);
+                    lastCloudAdded = currentTime;
+                }
+            }
+            cloudLoop();
+            
         }
         
         this.getStage = function () {
@@ -329,7 +362,7 @@ var deepDiffMapper = function() {
         this.updateRendering = function () {
             house.empty();
             for (var i = houseStruct.length-1; i>=0; i--) {
-                house.append($('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))+'%; height: '+(100/Math.max(houseStruct.length,4))+'%">'));
+                house.append($('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+(house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i)))+'px; height: '+(house.height()/100*(100/Math.max(houseStruct.length,4)))+'px">'));
             }
             self.updateZoomLevel(0);
         }
@@ -593,13 +626,20 @@ var deepDiffMapper = function() {
             var oldSideRatio = 2.488888888888889;//house.width()/(house.height()/oldLevel);
             var newWidth = (house.height()/maxLevels)*oldSideRatio;
             if (diff > 0) {
-				var i = 0;
+                var i = 0;
                 house.stop().find('.level, .ground, .roof').not('.preview').each(function () {
-					$(this).stop().animate({
-						bottom: ((100/maxLevels)*(i++))+'%',
-						height: (100/maxLevels)+'%'
-					},400);
-				});
+                    
+                    var bottom = (100/maxLevels)*(i++);
+                    bottom = house.height()/100*bottom; // berechne Prozent in Pixel
+                    
+                    $(this).stop().transition({
+                        bottom: bottom+'px',
+                        height: house.height/100*(100/maxLevels)+'px'
+                    },400);
+                });
+                landside.stop().animate({
+                    backgroundSize: (100+10*Math.max(0, 14-maxLevels))+'%'
+                }, 400);
             }
             house.stop().animate({
                 width: newWidth,
@@ -607,8 +647,8 @@ var deepDiffMapper = function() {
             },400);
         }
         
-        this.addCloud = function (type, posY, speed) {
-            clouds.push(new htmlbCloud(self, type, posY, speed));   
+        this.addCloud = function (type, posY, scale, speed) {
+            clouds.push(new htmlbCloud(self, type, posY, scale, speed));   
         }
         
         this.removeCloud = function (cloud) {
@@ -745,14 +785,15 @@ var deepDiffMapper = function() {
     }
     
     // Cloud
-    htmlbCloud = function( lot, type, posY, speed ) {
+    htmlbCloud = function( lot, type, posY, scale, speed ) {
         
         var self = this;
         var assetDOM = $('<div class="htmlb asset cloud-'+type+'">');
         lot.getStage().append(assetDOM);
         
         assetDOM.css('top', posY);
-        assetDOM.animate({left: lot.getStage().width()+assetDOM.width()},speed*1000, function(){
+        assetDOM.css('scale', scale)
+        assetDOM.transition({x: lot.getStage().width()},speed*1000, "linear", function(){
             lot.removeCloud(self);
         });
         
