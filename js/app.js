@@ -225,10 +225,10 @@ window.requestAnimFrame = (function(){
                         bottom = house.height()/100*bottom; // berechne Prozent in Pixel
                         
                         // Animiere das Stockwerk auf die neue Bottom Position und die richtige Höhe
-                        $(houseLevels[i]).stop().transition({
+                        $(houseLevels[i]).css({
                             height: house.height()/100*(100/maxLevels)+'px',
                             bottom: bottom
-                        },100);
+                        });
                     }
                 }
                 oldMouseLevel = currentMouseLevel; 
@@ -632,19 +632,19 @@ window.requestAnimFrame = (function(){
                     var bottom = (100/maxLevels)*(i++);
                     bottom = house.height()/100*bottom; // berechne Prozent in Pixel
                     
-                    $(this).stop().transition({
+                    $(this).css({
                         bottom: bottom+'px',
                         height: house.height/100*(100/maxLevels)+'px'
-                    },400);
+                    });
                 });
-                landside.stop().animate({
+                landside.css({
                     backgroundSize: (100+10*Math.max(0, 14-maxLevels))+'%'
-                }, 400);
+                });
             }
-            house.stop().animate({
+            house.css({
                 width: newWidth,
                 marginLeft: -newWidth*0.5
-            },400);
+            });
         }
         
         this.addCloud = function (type, posY, scale, speed) {

@@ -47,6 +47,10 @@
   background-image: url('../img/landside.svg');
   background-size: 200%;
   background-position: bottom;
+  
+  /* animation */
+  transition: background-size 400ms; 
+  -webkit-transition: background-size 400ms;
 }
 
 .htmlb.code-box {
@@ -144,6 +148,9 @@ h3.htmlb {
   -webkit-transform: rotateX(-20deg);
   -moz-transform-origin: 50% 100%;
   -moz-transform: rotateX(-20deg);
+  
+  transition: width 400ms, margin-left 400ms; 
+  -webkit-transition: width 400ms, margin-left 400mx; 
 }
 
 .htmlb.asset.level,
@@ -168,6 +175,13 @@ h3.htmlb {
   margin-bottom: -4%;
   background-image: url('../img/assets/asset-roof.svg');
   background-size: 100% 100%;
+}
+
+.htmlb.asset.level,
+.htmlb.asset.ground,
+.htmlb.asset.roof {
+  transition: bottom 100ms; 
+  -webkit-transition: bottom 100ms;
 }
 
 .htmlb.asset.preview {
