@@ -136,6 +136,7 @@ window.requestAnimFrame = (function(){
         var dragUnit = null;
         // bisheriges Stockwerk, das per dragover angewählt wurde
         var oldMouseLevel = 0;
+        var xPos = 0;
         
         // Aufgabe um Level zu bestehen
         var challenges = [];
@@ -186,88 +187,101 @@ window.requestAnimFrame = (function(){
             house = $('<div class="htmlb house">');
             houseBox.append(house);
             
-            house[0].addEventListener('dragover', function(e){
+            $(self).on('dragover', '.house > .asset', function(e){
                 e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
+                e.originalEvent.dataTransfer.dropEffect = 'move';
                 
                 // berechne die Mausposition relativ zur Position des Hauses
                 var houseOffset = house.offset();
-                var relX = e.pageX - houseOffset.left;
-                var relY = e.pageY - houseOffset.top;
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
                 
                 // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
                 var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
                 var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
                 
                 var windowWidth;
-                var i;
+                var i = 0;
                 var pos = -1;
                 
-                house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
-                    if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length - 1 - currentMouseLevel].unit.getName(), o.lang)){
-                        house.find('.preview').remove();
-                        var assetPreview = $('<div class="htmlb asset ' + dragUnit.getName() + ' preview">');
-                        $(this).append(assetPreview);
-                        assetWidth = parseInt($('.' + dragUnit.getName()).css('margin-left')) + parseInt($('.' + dragUnit.getName()).width()) + parseInt($('.' + dragUnit.getName()).css('margin-right'));
-                        var childAssetsWidth = 0;
-                        $(this).children(':not(.preview)').each(function(){
-                            currentAssetWidth = parseInt($(this).css('margin-left')) + parseInt($(this).width()) + parseInt($(this).css('margin-right'));
-                            if(relX < childAssetsWidth + currentAssetWidth){
-                                $(this).css({left: assetWidth});
-                                if(pos == -1){
-                                    assetPreview.css('left', childAssetsWidth);
-                                }
-                            }else{
-                                $(this).css('left', 0);
+                if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length - 1 - currentMouseLevel].unit.getName(), o.lang)){
+                    house.find('.preview').remove();
+                    var assetPreview = $('<div class="htmlb asset ' + dragUnit.getName() + ' preview">');
+                    $(this).append(assetPreview);
+                    assetWidth = parseInt($('.' + dragUnit.getName()).css('margin-left')) + parseInt($('.' + dragUnit.getName()).width()) + parseInt($('.' + dragUnit.getName()).css('margin-right'));
+                    var childAssetsWidth = 0;
+                    $('.house > * > .asset:not(.preview)').css('left', 0);
+                    $(this).children(':not(.preview)').each(function(){
+                        currentAssetWidth = parseInt($(this).css('margin-left')) + parseInt($(this).width()) + parseInt($(this).css('margin-right'));
+                        if(relX < childAssetsWidth + currentAssetWidth){
+                            $(this).css({left: assetWidth});
+                            if(pos == -1){
+                                assetPreview.css('left', childAssetsWidth);
+                                pos = i;
+                                xPos = pos;
                             }
-                            childAssetsWidth += currentAssetWidth;
-                        });
+                        }else{
+                            $(this).css('left', 0);
+                        }
+                        childAssetsWidth += currentAssetWidth;
+                        i++;
+                    });
+                    if (pos == -1) {
+                        xPos = i;
+                        assetPreview.css('left', childAssetsWidth);
                     }
-                });
+                    console.log(xPos);
+                }
                 
-            }, false);
-                        
-            house[0].addEventListener('drop', function(e){
-                
+            });            
+            house.on('drop', '.asset', function(e){
                 // berechne die Mausposition relativ zur Position des Hauses
                 var houseOffset = house.offset();
-                var relX = e.pageX - houseOffset.left;
-                var relY = e.pageY - houseOffset.top;
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
                 
                 // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
                 var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
                 var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
                 
-                var pos = -1;
+                var pos = 0;
                 
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').find('.preview').remove();
                 
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
+                    
                     if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length-1-currentMouseLevel].unit.getName(), o.lang)){
-                        pos++;
-                        self.addUnitToStruct(houseStruct[houseStruct.length-1-currentMouseLevel], dragUnit, pos);
+                        console.log(xPos);
+                        self.addUnitToStruct(houseStruct[houseStruct.length-1-currentMouseLevel], dragUnit, xPos);
                     }
                 });
                 
-            }, false);
+            });
             
-            houseBox[0].addEventListener('dragenter', function(e){
+            /*
+            $(self).on('drop', '.house > .asset > .preview', function(e) {
+                if (e.stopPropagation) {
+                  e.stopPropagation();
+                }
+            });
+        */
+            
+            houseBox.on('dragenter', function(e){
                 
-            },false);
+            });
                         
-            houseBox[0].addEventListener('dragover', function(e){
+            houseBox.on('dragover', function(e){
                 e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
+                e.originalEvent.dataTransfer.dropEffect = 'move';
                 
                 // berechne die Mausposition relativ zur Position des Hauses
                 var houseOffset = house.offset();
-                var relX = e.pageX - houseOffset.left;
-                var relY = e.pageY - houseOffset.top;
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
                 
                 // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
                 var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
                 var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
-                console.log(currentMouseLevel);
                 
                 // Anzeigen einer Vorschau des einzufügenden Stockwerks + Animation der restlichen Stockwerke
                 // Wenn Maus innerhalb des Hauses und (zur Performanceverbesserung) Veränderung zwischen des ausgewählten Stockwerks stattgefunden hat
@@ -281,16 +295,13 @@ window.requestAnimFrame = (function(){
                 }
                 oldMouseLevel = currentMouseLevel; 
               
-            }, false);
+            });
             
-            houseBox[0].addEventListener('drop', function(e){
+            houseBox.on('drop', function(e){
               var houseOffset = house.offset();
-              var relX = e.pageX - houseOffset.left;
-              var relY = e.pageY - houseOffset.top;
+              var relX = e.originalEvent.pageX - houseOffset.left;
+              var relY = e.originalEvent.pageY - houseOffset.top;
               
-              if (e.stopPropagation) {
-                e.stopPropagation();
-              }
               
               if (relY >= 0 && relY <= house.height()) {
                 var levelHeight = house.height()/maxLevels;
@@ -398,7 +409,7 @@ window.requestAnimFrame = (function(){
         }
         
         this.addUnitToStruct = function (parent, unit, pos) {
-            pos = (pos == 0) ? houseStruct.length : pos;
+            pos = (pos == 0 && parent == 'root') ? houseStruct.length : pos;
             var struct = (parent == 'root') ? houseStruct : parent.childNodes;
             struct.splice(pos, 0, {
                 unit: unit,
@@ -431,12 +442,9 @@ window.requestAnimFrame = (function(){
             for (var i = houseStruct.length-1; i>=0; i--) {
                 var currentLevel = $('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+(house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i)))+'px; height: '+(house.height()/100*(100/Math.max(houseStruct.length,4)))+'px">');
                 house.append(currentLevel);
-                currentLevel[0].addEventListener('dragleave', function(){
-                    currentLevel.children().css('left', 0);
-                }, false);
                 if(typeof houseStruct[i].childNodes !== 'undefined'){
                     for (var j = houseStruct[i].childNodes.length -1; j >= 0; j--){
-                        currentLevel.append($('<div class="htmlb asset '+houseStruct[i].childNodes[j].unit.getName()+'">'));
+                        currentLevel.prepend($('<div class="htmlb asset '+houseStruct[i].childNodes[j].unit.getName()+'">'));
                     }
                 }
             }
@@ -660,7 +668,6 @@ window.requestAnimFrame = (function(){
                             currentUnitCount++; // ... erhöhe Anzahl
                         }
                     }
-                    console.log('anzahl Elemente:' + currentUnitCount);
                 }
                 
         

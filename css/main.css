@@ -186,21 +186,35 @@ h3.htmlb {
 
 .htmlb.asset.preview {
   opacity: 0.6;
+  pointer-events: none;
 }
 
 .htmlb.asset.window{
-  width: 15%;
-  height: 50%;
+  width: 20.6666%;
+  height: 100%;
   position: relative;
-  margin-left: 16%;
-  margin-right: 16%;
-  margin-top: 15%;
-  background-color: blue;
+  margin-left: 6.15%;
+  margin-right: 6.15%;
   float: left;
+  background-image: url('../img/assets/asset-window.svg');
+  background-size: 100% auto;
   /*visibility:hidden;*/
 }
 
-.htmlb.asset.window.preview {
+.htmlb.asset.door{
+  width: 26.6666%;
+  height: 100%;
+  position: relative;
+  margin-left: 3.15%;
+  margin-right: 3.15%;
+  float: left;
+  background-image: url('../img/assets/asset-door.svg');
+  background-size: 100% auto;
+  /*visibility:hidden;*/
+}
+
+.htmlb.asset.window.preview,
+.htmlb.asset.door.preview {
   position: absolute;
 }
 
@@ -266,6 +280,7 @@ h3.htmlb {
 
 /* Asset Basic Class */
 .htmlb.asset {
+  overflow: hidden;
 }
 
 .htmlb.asset.cloud-1 {
