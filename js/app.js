@@ -189,9 +189,49 @@ window.requestAnimFrame = (function(){
             house[0].addEventListener('dragover', function(e){
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
+                
+                // berechne die Mausposition relativ zur Position des Hauses
+                var houseOffset = house.offset();
+                var relX = e.pageX - houseOffset.left;
+                var relY = e.pageY - houseOffset.top;
+                
+                // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
+                var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
+                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                
+                var windowWidth;
+                var i;
+                
+                house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
+                    if(dragUnit.parentAllowed(houseStruct[currentMouseLevel].unit.getName(), o.lang)){
+                        $(this).append($('<div class="htmlb asset ' + dragUnit.getName() + ' preview">'));
+                    }
+                });
+                
             }, false);
                         
             house[0].addEventListener('drop', function(e){
+                
+                // berechne die Mausposition relativ zur Position des Hauses
+                var houseOffset = house.offset();
+                var relX = e.pageX - houseOffset.left;
+                var relY = e.pageY - houseOffset.top;
+                
+                // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
+                var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
+                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                
+                var pos = -1;
+                
+                house.children(':nth-child(' + (currentMouseLevel + 1) + ')').find('.preview').remove();
+                
+                house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
+                    if(dragUnit.parentAllowed(houseStruct[currentMouseLevel].unit.getName(), o.lang)){
+                        pos++;
+                        self.addUnitToStruct(houseStruct[currentMouseLevel], dragUnit, pos);
+                    }
+                });
+                
             }, false);
                         
             houseBox[0].addEventListener('dragenter', function(e){
@@ -236,7 +276,7 @@ window.requestAnimFrame = (function(){
             }, false);
             
             houseBox[0].addEventListener('drop', function(e){
-                var houseOffset = house.offset();
+              var houseOffset = house.offset();
               var relX = e.pageX - houseOffset.left;
               var relY = e.pageY - houseOffset.top;
               
@@ -290,7 +330,7 @@ window.requestAnimFrame = (function(){
                 addIcon(unit);
         }
         
-        function addIcon (unit) {
+        function addIcon (unit) {  
             elementList.append(unit.getIcon());
             unit.getIcon()[0].addEventListener('dragstart', function(e){
                 e.dataTransfer.effectAllowed = 'move';
@@ -300,6 +340,7 @@ window.requestAnimFrame = (function(){
                     self.updateZoomLevel(2);
                 }
             }, false);
+            
             elementList[0].addEventListener('dragend', function(e){
                 house.find('.preview').remove();
                 self.updateZoomLevel(0);
@@ -362,7 +403,13 @@ window.requestAnimFrame = (function(){
         this.updateRendering = function () {
             house.empty();
             for (var i = houseStruct.length-1; i>=0; i--) {
-                house.append($('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+(house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i)))+'px; height: '+(house.height()/100*(100/Math.max(houseStruct.length,4)))+'px">'));
+                var currentLevel = $('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+(house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i)))+'px; height: '+(house.height()/100*(100/Math.max(houseStruct.length,4)))+'px">');
+                house.append(currentLevel);
+                if(typeof houseStruct[i].childNodes !== 'undefined'){
+                    for (var j = houseStruct[i].childNodes.length -1; j >= 0; j--){
+                        currentLevel.append($('<div class="htmlb asset '+houseStruct[i].childNodes[j].unit.getName()+'">'));
+                    }
+                }
             }
             self.updateZoomLevel(0);
         }

@@ -188,6 +188,17 @@ h3.htmlb {
   opacity: 0.6;
 }
 
+.htmlb.asset.window{
+  width: 15%;
+  height: 50%;
+  position: absolute;
+  margin-left: 16%;
+  margin-right: 16%;
+  bottom: 25%;
+  background-color: blue;
+  /*visibility:hidden;*/
+}
+
 /********************
  UNIT ICONS
 ********************/
