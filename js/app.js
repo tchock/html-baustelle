@@ -233,7 +233,7 @@ window.requestAnimFrame = (function(){
                 });
                 
             }, false);
-                        
+            
             houseBox[0].addEventListener('dragenter', function(e){
                 
             },false);
@@ -250,6 +250,7 @@ window.requestAnimFrame = (function(){
                 // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
                 var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
                 var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                console.log(currentMouseLevel);
                 
                 // Anzeigen einer Vorschau des einzufügenden Stockwerks + Animation der restlichen Stockwerke
                 // Wenn Maus innerhalb des Hauses und (zur Performanceverbesserung) Veränderung zwischen des ausgewählten Stockwerks stattgefunden hat
@@ -257,19 +258,9 @@ window.requestAnimFrame = (function(){
                     house.find('.preview').remove(); // lösche alle allten Vorschau Objekte (max 1)
                     // Füge neues Vorschauelement an der gewünschten Stelle ein
                     house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+(100/maxLevels*currentMouseLevel+3)+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
-                    var houseLevels = house.children().not('.preview'); // erhalte die Stockwerke, die keine Vorschau sind
+                    
                     // Durch gehe alle Stockwerke
-                    for (var i = houseLevels.length-1; i >= 0; i--) {
-                        // Berechne die neue Position: Wenn Stockwerk über dem aktuellen Cursor liegt, schiebe ihn um eine Stockwerkhöhe hoch, ansonsten schiebe ihn runter oder lasse ihn bei dem alten Wert
-                        var bottom = (i >= currentMouseLevel) ? ((100/maxLevels)*(i))+(100/maxLevels)+6 : (100/Math.max(maxLevels,4))*i;
-                        bottom = house.height()/100*bottom; // berechne Prozent in Pixel
-                        
-                        // Animiere das Stockwerk auf die neue Bottom Position und die richtige Höhe
-                        $(houseLevels[i]).css({
-                            height: house.height()/100*(100/maxLevels)+'px',
-                            bottom: bottom
-                        });
-                    }
+                    self.changeLevelPos(currentMouseLevel);
                 }
                 oldMouseLevel = currentMouseLevel; 
               
@@ -286,8 +277,8 @@ window.requestAnimFrame = (function(){
               
               if (relY >= 0 && relY <= house.height()) {
                 var levelHeight = house.height()/maxLevels;
-                var currentMouseLevel = Math.round((house.height()-relY) / levelHeight);
-                self.addUnitToStruct('root', dragUnit, maxLevels - houseStruct.length -1 - currentMouseLevel);
+                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                self.addUnitToStruct('root', dragUnit, -currentMouseLevel);
                 house.find('.preview').remove();
               }
             });
@@ -319,6 +310,21 @@ window.requestAnimFrame = (function(){
             
         }
         
+        this.changeLevelPos = function (currentMouseLevel) {
+            var houseLevels = house.children().not('.preview'); // erhalte die Stockwerke, die keine Vorschau sind
+            for (var i = houseLevels.length-1; i >= 0; i--) {
+                // Berechne die neue Position: Wenn Stockwerk über dem aktuellen Cursor liegt, schiebe ihn um eine Stockwerkhöhe hoch, ansonsten schiebe ihn runter oder lasse ihn bei dem alten Wert
+                var bottom = (i >= currentMouseLevel && currentMouseLevel >= 0) ? ((100/maxLevels)*(i))+(100/maxLevels)+6 : (100/Math.max(maxLevels,4))*i;
+                bottom = house.height()/100*bottom; // berechne Prozent in Pixel
+                
+                // Animiere das Stockwerk auf die neue Bottom Position und die richtige Höhe
+                $(houseLevels[i]).css({
+                    height: house.height()/100*(100/maxLevels)+'px',
+                    bottom: bottom
+                });
+            }
+        }
+        
         this.getStage = function () {
             return contentBox;
         }
@@ -344,6 +350,7 @@ window.requestAnimFrame = (function(){
             elementList[0].addEventListener('dragend', function(e){
                 house.find('.preview').remove();
                 self.updateZoomLevel(0);
+                self.changeLevelPos(-1);
             },false);
         }
         
@@ -374,6 +381,7 @@ window.requestAnimFrame = (function(){
         }
         
         this.addUnitToStruct = function (parent, unit, pos) {
+            pos = (pos == 0) ? houseStruct.length : pos;
             var struct = (parent == 'root') ? houseStruct : parent.childNodes;
             struct.splice(pos, 0, {
                 unit: unit,
@@ -402,6 +410,7 @@ window.requestAnimFrame = (function(){
         /// Aktualisiert das Rendering des Hauses
         this.updateRendering = function () {
             house.empty();
+            removeDiffNotes(houseStruct);
             for (var i = houseStruct.length-1; i>=0; i--) {
                 var currentLevel = $('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+(house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i)))+'px; height: '+(house.height()/100*(100/Math.max(houseStruct.length,4)))+'px">');
                 house.append(currentLevel);
@@ -481,20 +490,25 @@ window.requestAnimFrame = (function(){
             return editorText;
         }
         
-        /// Entfernt alle gehighlighteten Zeilen und leert updatedLines
-        function removeEditorHighlights () {
-            for (var i = updatedLines.length-1; i>=0; i--) {
-                codeBoxElements.editor.removeLineClass(updatedLines[i]-1, 'background', 'line-highlight');
-            }
-            updatedLines = [];
+        /// Entfernt gehighlightete Zeile in bestimmter Zeile (und entfernt die Zeile in updatedLines)
+        /// @param line Zeilennummer
+        function removeEditorHighlight (line) {
+            codeBoxElements.editor.removeLineClass(line-1, 'background', 'line-highlight');
+            for (var i = updatedLines.length-1; i >= 0; i--) {
+                if (updatedLines[i] == line) {
+                    updatedLines.splice(i,1);
+                    break;
+                }
+            }   
         }
         
         /// Hebt neue Zeilen hervor und entfernt sie nach 3 Sekunden wieder
         this.highlightChangedLines = function () {
             for (var i = updatedLines.length-1; i>=0; i--) {
                 codeBoxElements.editor.addLineClass(updatedLines[i]-1, 'background', 'line-highlight');
+                var currentLinePos = i;
+                window.setTimeout(function () {removeEditorHighlight(updatedLines[currentLinePos]) }, 3000);
             }
-            window.setTimeout(function () {removeEditorHighlights() }, 3000);
         }
         
         /// Löscht die diffState Einträge in der Datenstruktur
@@ -503,7 +517,7 @@ window.requestAnimFrame = (function(){
                 if (typeof struct[i].diffState !== 'undefined') {
                     // Wenn Diff State "deleted" ist, dann lösche den kompletten Node
                     if (struct[i]['diffState'] == 'deleted') {
-                        struct.splice(i--, 1);
+                        struct.splice(i, 1);
                         continue;
                     }
                     // ansonsten lösche einfach den diffState Eintrag
@@ -534,24 +548,10 @@ window.requestAnimFrame = (function(){
                 
                 houseStruct = deepDiffMapper.map(houseStruct, newStruct);
                 self.checkIfWon();
-                /*console.log(newStruct);
-                console.log(diffStruct);
-                */
-                removeDiffNotes(houseStruct); // rauslöschen! Muss in die Render Update Methode benutzen, nachdem neu gezeichnet wurde
                 self.updateRendering();
                 
                 
-                /* TO KILL START */
-                var editorText = "";
-                $.each(houseStruct, function(index, value) {
-                   var textToAdd = addTagToEditor(value, 0, {value: 0});
-                   editorText += textToAdd;
-                   
-                });
-                editorText = editorText.substr(0, editorText.length-1);
-                $('#debug-output').html(editorText);
-                /* TO KILL END */
-            /*
+                    /*
             } catch (e) {
                 console.log(e.name +"==> "+ e.message);
             }*/
@@ -684,10 +684,10 @@ window.requestAnimFrame = (function(){
                         height: house.height/100*(100/maxLevels)+'px'
                     });
                 });
-                landside.css({
-                    backgroundSize: (100+10*Math.max(0, 14-maxLevels))+'%'
-                });
             }
+            landside.css({
+                backgroundSize: (100+10*Math.max(0, 14-maxLevels))+'%'
+            });
             house.css({
                 width: newWidth,
                 marginLeft: -newWidth*0.5
