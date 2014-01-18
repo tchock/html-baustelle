@@ -205,7 +205,20 @@ window.requestAnimFrame = (function(){
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
                     if(dragUnit.parentAllowed(houseStruct[currentMouseLevel].unit.getName(), o.lang)){
                         house.find('.preview').remove();
-                        $(this).append($('<div class="htmlb asset ' + dragUnit.getName() + ' preview">'));
+                        var assetPreview = $('<div class="htmlb asset ' + dragUnit.getName() + ' preview">');
+                        $(this).append(assetPreview);
+                        assetWidth = parseInt($('.' + dragUnit.getName()).css('margin-left')) + parseInt($('.' + dragUnit.getName()).width()) + parseInt($('.' + dragUnit.getName()).css('margin-right'));
+                        var childAssetsWidth = 0;
+                        $(this).children().each(function(){
+                            currentAssetWidth = parseInt($(this).css('margin-left')) + parseInt($(this).width()) + parseInt($(this).css('margin-right'));
+                            if(relX < childAssetsWidth){
+                                $(this).css({left: assetWidth});
+                                if(pos == -1){
+                                    assetPreview.css('left', childAssetsWidth);
+                                }
+                            }
+                            childAssetsWidth += currentAssetWidth;
+                        });
                     }
                 });
                 
