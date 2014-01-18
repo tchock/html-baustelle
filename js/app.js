@@ -123,7 +123,7 @@ window.requestAnimFrame = (function(){
         var units = [];
         
         // Gesetzte Assets
-        clouds = [];
+        var clouds = [];
         var lastCloudAdded = 0;
         // Haus Datenstruktut
         houseStruct = [];
@@ -204,6 +204,7 @@ window.requestAnimFrame = (function(){
                 
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
                     if(dragUnit.parentAllowed(houseStruct[currentMouseLevel].unit.getName(), o.lang)){
+                        house.find('.preview').remove();
                         $(this).append($('<div class="htmlb asset ' + dragUnit.getName() + ' preview">'));
                     }
                 });
@@ -226,9 +227,9 @@ window.requestAnimFrame = (function(){
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').find('.preview').remove();
                 
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
-                    if(dragUnit.parentAllowed(houseStruct[currentMouseLevel].unit.getName(), o.lang)){
+                    if(dragUnit.parentAllowed(houseStruct[houseStruct.length-1-currentMouseLevel].unit.getName(), o.lang)){
                         pos++;
-                        self.addUnitToStruct(houseStruct[currentMouseLevel], dragUnit, pos);
+                        self.addUnitToStruct(houseStruct[houseStruct.length-1-currentMouseLevel], dragUnit, pos);
                     }
                 });
                 
