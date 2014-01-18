@@ -191,6 +191,7 @@ h3.htmlb {
 .htmlb.asset.window{
   width: 15%;
   height: 50%;
+  position: relative;
   margin-left: 16%;
   margin-right: 16%;
   margin-top: 15%;

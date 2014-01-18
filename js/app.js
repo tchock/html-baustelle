@@ -201,21 +201,24 @@ window.requestAnimFrame = (function(){
                 
                 var windowWidth;
                 var i;
+                var pos = -1;
                 
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
-                    if(dragUnit.parentAllowed(houseStruct[currentMouseLevel].unit.getName(), o.lang)){
+                    if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length - 1 - currentMouseLevel].unit.getName(), o.lang)){
                         house.find('.preview').remove();
                         var assetPreview = $('<div class="htmlb asset ' + dragUnit.getName() + ' preview">');
                         $(this).append(assetPreview);
                         assetWidth = parseInt($('.' + dragUnit.getName()).css('margin-left')) + parseInt($('.' + dragUnit.getName()).width()) + parseInt($('.' + dragUnit.getName()).css('margin-right'));
                         var childAssetsWidth = 0;
-                        $(this).children().each(function(){
+                        $(this).children(':not(.preview)').each(function(){
                             currentAssetWidth = parseInt($(this).css('margin-left')) + parseInt($(this).width()) + parseInt($(this).css('margin-right'));
-                            if(relX < childAssetsWidth){
+                            if(relX < childAssetsWidth + currentAssetWidth){
                                 $(this).css({left: assetWidth});
                                 if(pos == -1){
                                     assetPreview.css('left', childAssetsWidth);
                                 }
+                            }else{
+                                $(this).css('left', 0);
                             }
                             childAssetsWidth += currentAssetWidth;
                         });
@@ -240,7 +243,7 @@ window.requestAnimFrame = (function(){
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').find('.preview').remove();
                 
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
-                    if(dragUnit.parentAllowed(houseStruct[houseStruct.length-1-currentMouseLevel].unit.getName(), o.lang)){
+                    if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length-1-currentMouseLevel].unit.getName(), o.lang)){
                         pos++;
                         self.addUnitToStruct(houseStruct[houseStruct.length-1-currentMouseLevel], dragUnit, pos);
                     }
@@ -428,6 +431,9 @@ window.requestAnimFrame = (function(){
             for (var i = houseStruct.length-1; i>=0; i--) {
                 var currentLevel = $('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+(house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i)))+'px; height: '+(house.height()/100*(100/Math.max(houseStruct.length,4)))+'px">');
                 house.append(currentLevel);
+                currentLevel[0].addEventListener('dragleave', function(){
+                    currentLevel.children().css('left', 0);
+                }, false);
                 if(typeof houseStruct[i].childNodes !== 'undefined'){
                     for (var j = houseStruct[i].childNodes.length -1; j >= 0; j--){
                         currentLevel.append($('<div class="htmlb asset '+houseStruct[i].childNodes[j].unit.getName()+'">'));
