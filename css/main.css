@@ -266,9 +266,6 @@ h3.htmlb {
 
 /* Asset Basic Class */
 .htmlb.asset {
-  overflow: hidden;
-  text-indent: -10000px;
-  background-image: url('../img/asset-sprite.svg');
 }
 
 .htmlb.asset.cloud-1 {
