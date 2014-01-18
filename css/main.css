@@ -235,6 +235,10 @@ h3.htmlb {
   background-position: 100% 0;
 }
 
+.htmlb.unit-icon.unit-chimney {
+  background-position: 0% 100%;
+}
+
 .htmlb.unit-icon.dragstart{
   opacity: 0.4;
 }
