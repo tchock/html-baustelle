@@ -213,6 +213,16 @@ h3.htmlb {
   /*visibility:hidden;*/
 }
 
+.htmlb.asset.chimney{
+  width: 26.6666%;
+  height: 100%;
+  position: absolute;
+  left: 10% !important;
+  float: left;
+  background-image: url('../img/assets/asset-chimney.svg');
+  background-size: 100% auto;
+}
+
 .htmlb.asset.window.preview,
 .htmlb.asset.door.preview {
   position: absolute;
@@ -284,6 +294,7 @@ h3.htmlb {
 }
 
 .htmlb.asset.cloud-1 {
+  background-image: url('../img/cloud-1.svg');
   background-position: 0 0;
   width: 198px;
   height: 68px;

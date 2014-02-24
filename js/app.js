@@ -230,7 +230,6 @@ window.requestAnimFrame = (function(){
                         xPos = i;
                         assetPreview.css('left', childAssetsWidth);
                     }
-                    console.log(xPos);
                 }
                 
             });            
@@ -250,8 +249,7 @@ window.requestAnimFrame = (function(){
                 
                 house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
                     
-                    if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length-1-currentMouseLevel].unit.getName(), o.lang)){
-                        console.log(xPos);
+                    if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined'){
                         self.addUnitToStruct(houseStruct[houseStruct.length-1-currentMouseLevel], dragUnit, xPos);
                     }
                 });
@@ -298,17 +296,17 @@ window.requestAnimFrame = (function(){
             });
             
             houseBox.on('drop', function(e){
-              var houseOffset = house.offset();
-              var relX = e.originalEvent.pageX - houseOffset.left;
-              var relY = e.originalEvent.pageY - houseOffset.top;
-              
-              
-              if (relY >= 0 && relY <= house.height()) {
-                var levelHeight = house.height()/maxLevels;
-                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
-                self.addUnitToStruct('root', dragUnit, -currentMouseLevel);
-                house.find('.preview').remove();
-              }
+                var houseOffset = house.offset();
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
+                
+                
+                if (relY >= 0 && relY <= house.height()) {
+                    var levelHeight = house.height()/maxLevels;
+                    var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                    self.addUnitToStruct('root', dragUnit, -currentMouseLevel);
+                    house.find('.preview').remove();
+                }
             });
             
             // Element Selection
@@ -409,16 +407,20 @@ window.requestAnimFrame = (function(){
         }
         
         this.addUnitToStruct = function (parent, unit, pos) {
-            pos = (pos == 0 && parent == 'root') ? houseStruct.length : pos;
-            var struct = (parent == 'root') ? houseStruct : parent.childNodes;
-            struct.splice(pos, 0, {
-                unit: unit,
-                attributes: (typeof unit.getSpec(o.lang).defaultAttributes !== 'undefined') ? unit.getSpec(o.lang).defaultAttributes : {},
-                childNodes: [],
-                diffState: 'created'
-            });
-            self.updateEditor();
-            self.highlightChangedLines();
+            var parentUnit = (parent != 'root') ? parent.unit.getName() : 'root';
+            if (unit.parentAllowed(parentUnit, o.lang)) {
+                pos = (pos == 0 && parent == 'root') ? houseStruct.length : pos;
+                var struct = (parent == 'root') ? houseStruct : parent.childNodes;
+                struct.splice(pos, 0, {
+                    unit: unit,
+                    attributes: (typeof unit.getSpec(o.lang).defaultAttributes !== 'undefined') ? unit.getSpec(o.lang).defaultAttributes : {},
+                    childNodes: [],
+                    diffState: 'created'
+                });
+                
+                self.updateEditor();
+                self.highlightChangedLines();
+            }
         }
         
         // Fügt eine Aufgabe hinzu
@@ -452,6 +454,7 @@ window.requestAnimFrame = (function(){
         }
         
         this.updateEditor = function () {
+            
             var editor = codeBoxElements.editor;
             var editorText = "";
             var lineCount = {value: 1};
@@ -465,6 +468,10 @@ window.requestAnimFrame = (function(){
         }
         
         function addTagToEditor (tagObject, level, lineCount) {
+            // Wenn gelöscht, füge Tag nicht dazu
+            if (tagObject.diffState == 'deleted')
+                return '';
+                
             var editorText = '';
             
             // Fügt Tabs hinzu, wenn gebraucht
