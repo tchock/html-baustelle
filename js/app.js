@@ -644,7 +644,7 @@ window.requestAnimFrame = (function(){
         /// Funktion, die aufgerufen wird, wenn neuer Inhalt in Code Editor eingegeben wird
         this.checkEditor = function () {
             // Exception Handling, damit Browser nicht abstürzen, wenn Tags nicht erkann werden
-            //try {
+            try {
                 var editorValue = codeBoxElements.editor.getValue();
                 // SGML Mode Only!
                 if (o.lang == 'sgml') {
@@ -662,11 +662,9 @@ window.requestAnimFrame = (function(){
                 self.checkIfWon();
                 self.updateRendering();
                 
-                
-                    /*
             } catch (e) {
                 console.log(e.name +"==> "+ e.message);
-            }*/
+            }
         }
         
         /// Konvertiert DOM in eigene Datenstruktur
