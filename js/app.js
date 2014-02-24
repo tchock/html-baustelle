@@ -663,7 +663,7 @@ window.requestAnimFrame = (function(){
                 self.updateRendering();
                 
             } catch (e) {
-                console.log(e.name +"==> "+ e.message);
+                // Do nothing!
             }
         }
         
