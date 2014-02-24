@@ -11,6 +11,8 @@ var deepDiffMapper = function() {
             }
             if (this.isValue(obj1) || this.isValue(obj2)) {
                 var output = obj1 || obj2;
+                if (typeof output.jquery !== 'undefined')
+                    return output;
                 output.diffState = this.compareValues(obj1, obj2);
                 return output;
             }
@@ -78,6 +80,18 @@ var deepDiffMapper = function() {
     }
 }();
 
+// UID Generator
+function s4() {
+  return Math.floor((1 + Math.random()) * 0x10000)
+             .toString(16)
+             .substring(1);
+};
+
+function guid() {
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+         s4() + '-' + s4() + s4() + s4();
+}
+
 
 // Request Animation Frame. Vielen Dank an Paul Irish (www.paulirish.com)
 window.requestAnimFrame = (function(){
@@ -118,6 +132,7 @@ window.requestAnimFrame = (function(){
         var houseBox;
         var house;
         var landside;
+        var startScreen;
     
         var elementList;
         var units = [];
@@ -134,6 +149,8 @@ window.requestAnimFrame = (function(){
         
         // Baueinheit, die grade gedragged wird
         var dragUnit = null;
+        var dragUnitObject = null;
+        
         // bisheriges Stockwerk, das per dragover angewählt wurde
         var oldMouseLevel = 0;
         var xPos = 0;
@@ -142,7 +159,9 @@ window.requestAnimFrame = (function(){
         var challenges = [];
         
         // Aufgaben alle bestanden gewonnen?
-        var challengesCompleted = false;
+        var gameCompleted = false;
+        
+        var gameStarted = false;
         
         ///
         /// Initialization
@@ -256,13 +275,6 @@ window.requestAnimFrame = (function(){
                 
             });
             
-            /*
-            $(self).on('drop', '.house > .asset > .preview', function(e) {
-                if (e.stopPropagation) {
-                  e.stopPropagation();
-                }
-            });
-        */
             
             houseBox.on('dragenter', function(e){
                 
@@ -313,13 +325,38 @@ window.requestAnimFrame = (function(){
             elementList = $('<ul class="htmlb element-list">');
             self.append(elementList);
             
+            // Startscreen
+            startScreen = $('<div class="htmlb start-screen"><div class="htmlb start-button">Start</div></div>');
+            self.append(startScreen);
+            self.on('click', '.start-button', function(e) {
+                gameStarted = true;
+                cloudLoop();
+                startScreen.animate({opacity: 0}, 800, function() {
+                    startScreen.remove(); 
+                });
+            });
+            
             // Editor Change Event
             codeBoxElements.editor.on('change', function(e){
                 self.checkEditor();
             });
             
+            self.on('click', '.complete-button', function(e) {
+                e.preventDefault();
+                if (gameCompleted) {
+                    gameStarted = false;
+                    var winScreen = $('<div class="htmlb win-screen">');
+                    self.append(winScreen);
+                    winScreen.animate({opacity: 1}, 800);
+                }
+            });
+            
             // Cloud add Loop mit request AnimFrame
             function cloudLoop(){
+                // bricht Animation ab, wenn Spiel nicht gestartet
+                if (!gameStarted)
+                    return;
+                // Loop via requestAnimFrame
                 requestAnimFrame(cloudLoop);
                 var date = new Date;
                 var currentTime = date.getTime();
@@ -332,7 +369,7 @@ window.requestAnimFrame = (function(){
                     lastCloudAdded = currentTime;
                 }
             }
-            cloudLoop();
+
             
         }
         
@@ -411,16 +448,51 @@ window.requestAnimFrame = (function(){
             if (unit.parentAllowed(parentUnit, o.lang)) {
                 pos = (pos == 0 && parent == 'root') ? houseStruct.length : pos;
                 var struct = (parent == 'root') ? houseStruct : parent.childNodes;
-                struct.splice(pos, 0, {
+                var unitID = guid();
+                var unitHTML = $('<div class="htmlb asset '+unit.getName()+'" id="object-'+unitID+'">');
+                var unitObject = {
+                    id: unitID,
                     unit: unit,
                     attributes: (typeof unit.getSpec(o.lang).defaultAttributes !== 'undefined') ? unit.getSpec(o.lang).defaultAttributes : {},
+                    html: unitHTML,
                     childNodes: [],
                     diffState: 'created'
+                };
+                struct.splice(pos, 0, unitObject);
+                
+                $(self).on('dblclick', '#object-'+unitID, function(e){
+                   e.stopPropagation();
+                   self.removeUnitFromStruct(houseStruct, unitID); 
+                   $(self).off('dblclick', '#object-'+unitID);
                 });
                 
                 self.updateEditor();
                 self.highlightChangedLines();
             }
+        }
+        
+        /// Löscht die angegebene Unit aus der Struktur
+        /// @param struct Struktur
+        /// @param unit Objekt, das gelöscht werden soll
+        this.removeUnitFromStruct = function (struct, unitID) {
+            // durchgehe die Struct
+            for (var i = 0; i < struct.length; i++) {
+                // Wenn Objekt gefunden...
+                if (struct[i].id == unitID) {
+                    struct.splice(i, 1); // ..lösche es
+                    self.updateRendering(); // ..update das Rendering
+                    self.updateEditor(); // ..update den Editor
+                    return true; // ..beende die Funktion
+                }
+                // Durchsuche die Kindelemente rekursiv
+                if(typeof struct[i].childNodes !== 'undefined'){
+                    if (self.removeUnitFromStruct(struct[i].childNodes, unitID)) {
+                        return true; // Beende, wenn in Kindelementen Objekt gefunden wurde
+                    }
+                }
+            }
+            // Objekt wurde nicht gefunden und auch nicht gelöscht
+            return false;
         }
         
         // Fügt eine Aufgabe hinzu
@@ -442,11 +514,16 @@ window.requestAnimFrame = (function(){
             house.empty();
             removeDiffNotes(houseStruct);
             for (var i = houseStruct.length-1; i>=0; i--) {
-                var currentLevel = $('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" style="bottom: '+(house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i)))+'px; height: '+(house.height()/100*(100/Math.max(houseStruct.length,4)))+'px">');
+                var currentLevel = houseStruct[i].html;
+                currentLevel.css({
+                    bottom: (house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))),
+                    height: (house.height()/100*(100/Math.max(houseStruct.length,4)))
+                });
+                currentLevel.empty();
                 house.append(currentLevel);
                 if(typeof houseStruct[i].childNodes !== 'undefined'){
                     for (var j = houseStruct[i].childNodes.length -1; j >= 0; j--){
-                        currentLevel.prepend($('<div class="htmlb asset '+houseStruct[i].childNodes[j].unit.getName()+'">'));
+                        currentLevel.prepend(houseStruct[i].childNodes[j].html);
                     }
                 }
             }
@@ -691,10 +768,10 @@ window.requestAnimFrame = (function(){
             
             // Wenn Anzahl komplettierter Aufgaben mit Anzahl Aufgaben übereinstimmt ...
             if (challengesCompleted == challenges.length) {
-                challengesCompleted = true; // ... hat der Spieler gewonnen
+                gameCompleted = true; // ... hat der Spieler gewonnen
                 houseBox.append('<a href="#" class="htmlb complete-button">Spiel abschließen</a>');
             } else {
-                challengesCompleted = false;
+                gameCompleted = false;
                 houseBox.find('.complete-button').remove();
             }
         }
