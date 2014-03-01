@@ -36,7 +36,7 @@
   });
 
   var htmlDontClose = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param",
-                       "source", "track", "wbr", "window"];
+                       "source", "track", "wbr", "window", "door", "chimney"];
   var htmlIndent = ["applet", "blockquote", "body", "button", "div", "dl", "fieldset", "form", "frameset", "h1", "h2", "h3", "h4",
                     "h5", "h6", "head", "html", "iframe", "layer", "legend", "object", "ol", "p", "select", "table", "ul"];
 
@@ -45,7 +45,7 @@
     var inner = CodeMirror.innerMode(cm.getMode(), tok.state), state = inner.state;
     if (inner.mode.name != "xml" || !state.tagName) return CodeMirror.Pass;
 
-    var opt = cm.getOption("autoCloseTags"), html = inner.mode.configuration == "html";
+    var opt = cm.getOption("autoCloseTags"), html = true;//inner.mode.configuration == "html";
     var dontCloseTags = (typeof opt == "object" && opt.dontCloseTags) || (html && htmlDontClose);
     var indentTags = (typeof opt == "object" && opt.indentTags) || (html && htmlIndent);
 

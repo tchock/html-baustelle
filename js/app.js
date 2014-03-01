@@ -820,12 +820,12 @@ window.requestAnimFrame = (function(){
     };
     
     // Unit
-    htmlbUnit = function (name, title, sgmlSpecs, xmlSpecs, htmlSpecs) {
+    htmlbUnit = function (name, title, xmlSpecs, htmlSpecs) {
         
         // Spezifikationen der Einheit
         // null, wenn für Sprache nicht vorhanden
         var specs = {
-            sgml: sgmlSpecs,        // SGML Specs
+            //sgml: sgmlSpecs,        // SGML Specs - depricated
             xml: xmlSpecs,          // XML Specs
             html: htmlSpecs         // HTML Specs
         };

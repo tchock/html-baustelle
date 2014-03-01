@@ -8,14 +8,14 @@ var units = {
     level: new htmlbUnit(
         'level', 'Stockwerk',
         // SGML Spec
-        {
+        /*{
             type: 'tag',
             tag: 'level',
             allowedAttributes: ['windowtype', 'windowcount'],
             defaultAttributes: {
                 windowtype: 'simple'
             }
-        },
+        },*/
         // XML Spec
         {
             tag: 'level',
@@ -41,7 +41,7 @@ var units = {
     ground: new htmlbUnit(
         'ground', 'Erdgeschoss',
         // SGML Spec
-        {
+        /*{
             type: 'tag',
             tag: 'ground',
             allowedAttributes: ['windowtype', 'windowcount', 'door'],
@@ -49,7 +49,7 @@ var units = {
                 windowtype: 'simple',
                 door: 'false'
             }
-        },
+        },*/
         // XML Spec
         {
             tag: 'ground',
@@ -73,11 +73,11 @@ var units = {
     roof: new htmlbUnit(
         'roof', 'Dach',
         // SGML Spec
-        {
+        /*{
             type: 'tag',
             tag: 'roof',
             allowedAttributes: ['chimney']
-        },
+        },*/
         // XML Spec
         {
             tag: 'roof',
@@ -101,13 +101,13 @@ var units = {
     window: new htmlbUnit(
         'window', 'Fenster',
         // SGML Spec
-        {
+        /*{
             type: 'attribute',
             allowedTags: ['level'],
             behaveiour: {
                 windowCount: 'defineInt'
             }
-        },
+        },*/
         // XML Spec
         {
             tag: 'window',
@@ -134,13 +134,13 @@ var units = {
     door: new htmlbUnit(
         'door', 'Tür',
         // SGML Spec
-        {
+        /*{
             type: 'attribute',
             allowedTags: ['ground'],
             behaveiour: {
                 door: 'defineBool'
             }
-        },
+        },*/
         // XML Spec
         {
             tag: 'door',
@@ -164,13 +164,13 @@ var units = {
     chimney: new htmlbUnit(
         'chimney', 'Schornstein',
         // SGML Spec
-        {
+        /*{
             type: 'attribute',
             allowedTags: ['roof'],
             behaveiour: {
                 door: 'defineBool'
             }
-        },
+        },*/
         // XML Spec
         {
             tag: 'chimney',
