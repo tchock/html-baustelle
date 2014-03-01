@@ -112,7 +112,8 @@ window.requestAnimFrame = (function(){
         var o = $.extend({
             lang: 'sgml', // Sprache
             codeBoxHeadline: 'Schreibe deinen Code',
-            codeBoxText: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.'
+            codeBoxText: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.',
+            examMode: false
         }, options );
 
         var self = this;
@@ -400,21 +401,23 @@ window.requestAnimFrame = (function(){
         }
         
         function addIcon (unit) {  
-            elementList.append(unit.getIcon());
-            unit.getIcon()[0].addEventListener('dragstart', function(e){
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('unit', unit);
-                dragUnit = unit;
-                if (unit.parentAllowed('root', o.lang)) {
-                    self.updateZoomLevel(2);
-                }
-            }, false);
-            
-            elementList[0].addEventListener('dragend', function(e){
-                house.find('.preview').remove();
-                self.updateZoomLevel(0);
-                self.changeLevelPos(-1);
-            },false);
+            if (!o.examMode) {
+                elementList.append(unit.getIcon());
+                unit.getIcon()[0].addEventListener('dragstart', function(e){
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('unit', unit);
+                    dragUnit = unit;
+                    if (unit.parentAllowed('root', o.lang)) {
+                        self.updateZoomLevel(2);
+                    }
+                }, false);
+                
+                elementList[0].addEventListener('dragend', function(e){
+                    house.find('.preview').remove();
+                    self.updateZoomLevel(0);
+                    self.changeLevelPos(-1);
+                },false);
+            }
         }
         
         this.addUnitList = function (unitList) {
