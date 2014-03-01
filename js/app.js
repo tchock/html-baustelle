@@ -449,23 +449,16 @@ window.requestAnimFrame = (function(){
                 pos = (pos == 0 && parent == 'root') ? houseStruct.length : pos;
                 var struct = (parent == 'root') ? houseStruct : parent.childNodes;
                 var unitID = guid();
-                var unitHTML = $('<div class="htmlb asset '+unit.getName()+'" id="object-'+unitID+'">');
                 var unitObject = {
                     id: unitID,
                     unit: unit,
                     attributes: (typeof unit.getSpec(o.lang).defaultAttributes !== 'undefined') ? unit.getSpec(o.lang).defaultAttributes : {},
-                    html: unitHTML,
                     childNodes: [],
                     diffState: 'created'
                 };
                 struct.splice(pos, 0, unitObject);
                 
-                $(self).on('dblclick', '#object-'+unitID, function(e){
-                   e.stopPropagation();
-                   self.removeUnitFromStruct(houseStruct, unitID); 
-                   $(self).off('dblclick', '#object-'+unitID);
-                });
-                
+                                
                 self.updateEditor();
                 self.highlightChangedLines();
             }
@@ -514,7 +507,7 @@ window.requestAnimFrame = (function(){
             house.empty();
             removeDiffNotes(houseStruct);
             for (var i = houseStruct.length-1; i>=0; i--) {
-                var currentLevel = houseStruct[i].html;
+                var currentLevel = $('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" id="object-'+houseStruct[i].id+'">');;
                 currentLevel.css({
                     bottom: (house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))),
                     height: (house.height()/100*(100/Math.max(houseStruct.length,4)))
@@ -523,7 +516,7 @@ window.requestAnimFrame = (function(){
                 house.append(currentLevel);
                 if(typeof houseStruct[i].childNodes !== 'undefined'){
                     for (var j = houseStruct[i].childNodes.length -1; j >= 0; j--){
-                        currentLevel.prepend(houseStruct[i].childNodes[j].html);
+                        currentLevel.prepend($('<div class="htmlb asset '+houseStruct[i].childNodes[j].unit.getName()+'" id="object-'+houseStruct[i].childNodes[j].id+'">'));
                     }
                 }
             }
@@ -644,7 +637,7 @@ window.requestAnimFrame = (function(){
         /// Funktion, die aufgerufen wird, wenn neuer Inhalt in Code Editor eingegeben wird
         this.checkEditor = function () {
             // Exception Handling, damit Browser nicht abstürzen, wenn Tags nicht erkann werden
-            try {
+            //try {
                 var editorValue = codeBoxElements.editor.getValue();
                 // SGML Mode Only!
                 if (o.lang == 'sgml') {
@@ -662,9 +655,9 @@ window.requestAnimFrame = (function(){
                 self.checkIfWon();
                 self.updateRendering();
                 
-            } catch (e) {
+            //} catch (e) {
                 // Do nothing!
-            }
+            //}
         }
         
         /// Konvertiert DOM in eigene Datenstruktur
@@ -692,8 +685,12 @@ window.requestAnimFrame = (function(){
                             }
                         });
                         
+                        // UID Generieren
+                        var unitID = guid();
+
                         // Node Objekt, das hinzugefügt werden soll
                         var tempNode = {
+                            id: unitID,
                             unit: unit,
                             attributes: tempAttributes
                         }
