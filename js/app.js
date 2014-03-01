@@ -110,7 +110,7 @@ window.requestAnimFrame = (function(){
     $.fn.HTMLLot = function(options) {
 
         var o = $.extend({
-            lang: 'sgml', // Sprache
+            lang: 'xml', // Sprache
             codeBoxHeadline: 'Schreibe deinen Code',
             codeBoxText: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.',
             examMode: false
