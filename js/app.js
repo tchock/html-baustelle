@@ -11,6 +11,8 @@ var deepDiffMapper = function() {
             }
             if (this.isValue(obj1) || this.isValue(obj2)) {
                 var output = obj1 || obj2;
+                if (typeof output.jquery !== 'undefined')
+                    return output;
                 output.diffState = this.compareValues(obj1, obj2);
                 return output;
             }
@@ -78,6 +80,30 @@ var deepDiffMapper = function() {
     }
 }();
 
+// UID Generator
+function s4() {
+  return Math.floor((1 + Math.random()) * 0x10000)
+             .toString(16)
+             .substring(1);
+};
+
+function guid() {
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+         s4() + '-' + s4() + s4() + s4();
+}
+
+
+// Request Animation Frame. Vielen Dank an Paul Irish (www.paulirish.com)
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
+
 (function ( $ ) {
     
     // HTML Baustelle Main Object
@@ -105,17 +131,38 @@ var deepDiffMapper = function() {
         };
         var houseBox;
         var house;
+        var landside;
+        var startScreen;
     
         var elementList;
         var units = [];
         
         // Gesetzte Assets
         var clouds = [];
-        
+        var lastCloudAdded = 0;
+        // Haus Datenstruktut
         houseStruct = [];
-        
+        // Codezeilen, die gehighlightet werden sollen
         var updatedLines = [];
-
+        // Anzahl der Stockwerke, die von der Kamera aufgefasst werden sollen
+        var maxLevels = 4;
+        
+        // Baueinheit, die grade gedragged wird
+        var dragUnit = null;
+        var dragUnitObject = null;
+        
+        // bisheriges Stockwerk, das per dragover angewählt wurde
+        var oldMouseLevel = 0;
+        var xPos = 0;
+        
+        // Aufgabe um Level zu bestehen
+        var challenges = [];
+        
+        // Aufgaben alle bestanden gewonnen?
+        var gameCompleted = false;
+        
+        var gameStarted = false;
+        
         ///
         /// Initialization
         ///
@@ -128,7 +175,8 @@ var deepDiffMapper = function() {
             contentBox.append('<div class="htmlb sky">');
             
             // Landside
-            contentBox.append('<div class="htmlb landside">');
+            landside = $('<div class="htmlb landside">');
+            contentBox.append(landside);
             
             // Code Box
             
@@ -157,19 +205,187 @@ var deepDiffMapper = function() {
             
             house = $('<div class="htmlb house">');
             houseBox.append(house);
-            house.append($('<div class="htmlb asset level">'));
-            house.append($('<div class="htmlb asset level" style="bottom: 25%">'));
-            house.append($('<div class="htmlb asset level" style="bottom: 50%">'));
-            house.append($('<div class="htmlb asset roof" style="bottom: 75%">'));
+            
+            $(self).on('dragover', '.house > .asset', function(e){
+                e.preventDefault();
+                e.originalEvent.dataTransfer.dropEffect = 'move';
+                
+                // berechne die Mausposition relativ zur Position des Hauses
+                var houseOffset = house.offset();
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
+                
+                // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
+                var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
+                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                
+                var windowWidth;
+                var i = 0;
+                var pos = -1;
+                
+                if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length - 1 - currentMouseLevel].unit.getName(), o.lang)){
+                    house.find('.preview').remove();
+                    var assetPreview = $('<div class="htmlb asset ' + dragUnit.getName() + ' preview">');
+                    $(this).append(assetPreview);
+                    assetWidth = parseInt($('.' + dragUnit.getName()).css('margin-left')) + parseInt($('.' + dragUnit.getName()).width()) + parseInt($('.' + dragUnit.getName()).css('margin-right'));
+                    var childAssetsWidth = 0;
+                    $('.house > * > .asset:not(.preview)').css('left', 0);
+                    $(this).children(':not(.preview)').each(function(){
+                        currentAssetWidth = parseInt($(this).css('margin-left')) + parseInt($(this).width()) + parseInt($(this).css('margin-right'));
+                        if(relX < childAssetsWidth + currentAssetWidth){
+                            $(this).css({left: assetWidth});
+                            if(pos == -1){
+                                assetPreview.css('left', childAssetsWidth);
+                                pos = i;
+                                xPos = pos;
+                            }
+                        }else{
+                            $(this).css('left', 0);
+                        }
+                        childAssetsWidth += currentAssetWidth;
+                        i++;
+                    });
+                    if (pos == -1) {
+                        xPos = i;
+                        assetPreview.css('left', childAssetsWidth);
+                    }
+                }
+                
+            });            
+            house.on('drop', '.asset', function(e){
+                // berechne die Mausposition relativ zur Position des Hauses
+                var houseOffset = house.offset();
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
+                
+                // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
+                var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
+                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                
+                var pos = 0;
+                
+                house.children(':nth-child(' + (currentMouseLevel + 1) + ')').find('.preview').remove();
+                
+                house.children(':nth-child(' + (currentMouseLevel + 1) + ')').each(function(){
+                    
+                    if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined'){
+                        self.addUnitToStruct(houseStruct[houseStruct.length-1-currentMouseLevel], dragUnit, xPos);
+                    }
+                });
+                
+            });
+            
+            
+            houseBox.on('dragenter', function(e){
+                
+            });
+                        
+            houseBox.on('dragover', function(e){
+                e.preventDefault();
+                e.originalEvent.dataTransfer.dropEffect = 'move';
+                
+                // berechne die Mausposition relativ zur Position des Hauses
+                var houseOffset = house.offset();
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
+                
+                // berechne, in welchem Stockwerk der Mauscursor sich grade befindet
+                var levelHeight = house.height()/maxLevels; // Höhe eines Stockwerks
+                var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                
+                // Anzeigen einer Vorschau des einzufügenden Stockwerks + Animation der restlichen Stockwerke
+                // Wenn Maus innerhalb des Hauses und (zur Performanceverbesserung) Veränderung zwischen des ausgewählten Stockwerks stattgefunden hat
+                if (relY >= 0 && relY <= house.height() && oldMouseLevel != currentMouseLevel && dragUnit.parentAllowed('root',o.lang)) {
+                    house.find('.preview').remove(); // lösche alle allten Vorschau Objekte (max 1)
+                    // Füge neues Vorschauelement an der gewünschten Stelle ein
+                    house.append($('<div class="htmlb asset '+ dragUnit.getName() +' preview" style="bottom: '+(100/maxLevels*currentMouseLevel+3)+'%; height: '+(100/Math.max(maxLevels,4))+'%">'));
+                    
+                    // Durch gehe alle Stockwerke
+                    self.changeLevelPos(currentMouseLevel);
+                }
+                oldMouseLevel = currentMouseLevel; 
+              
+            });
+            
+            houseBox.on('drop', function(e){
+                var houseOffset = house.offset();
+                var relX = e.originalEvent.pageX - houseOffset.left;
+                var relY = e.originalEvent.pageY - houseOffset.top;
+                
+                
+                if (relY >= 0 && relY <= house.height()) {
+                    var levelHeight = house.height()/maxLevels;
+                    var currentMouseLevel = Math.round((house.height()-relY) / (levelHeight-1));
+                    self.addUnitToStruct('root', dragUnit, -currentMouseLevel);
+                    house.find('.preview').remove();
+                }
+            });
             
             // Element Selection
             elementList = $('<ul class="htmlb element-list">');
             self.append(elementList);
             
+            // Startscreen
+            startScreen = $('<div class="htmlb start-screen"><div class="htmlb start-button">Start</div></div>');
+            self.append(startScreen);
+            self.on('click', '.start-button', function(e) {
+                gameStarted = true;
+                cloudLoop();
+                startScreen.animate({opacity: 0}, 800, function() {
+                    startScreen.remove(); 
+                });
+            });
+            
             // Editor Change Event
             codeBoxElements.editor.on('change', function(e){
                 self.checkEditor();
             });
+            
+            self.on('click', '.complete-button', function(e) {
+                e.preventDefault();
+                if (gameCompleted) {
+                    gameStarted = false;
+                    var winScreen = $('<div class="htmlb win-screen">');
+                    self.append(winScreen);
+                    winScreen.animate({opacity: 1}, 800);
+                }
+            });
+            
+            // Cloud add Loop mit request AnimFrame
+            function cloudLoop(){
+                // bricht Animation ab, wenn Spiel nicht gestartet
+                if (!gameStarted)
+                    return;
+                // Loop via requestAnimFrame
+                requestAnimFrame(cloudLoop);
+                var date = new Date;
+                var currentTime = date.getTime();
+                // Wenn weniger als 3 Wolken vorhanden sind und seit hinzufügen der letzter Wolke mindestens 3 Sekunden vergangen sind ...
+                if (currentTime - lastCloudAdded > 12000 && clouds.length < 4) {
+                    var scale = 0.3+0.7*Math.random();
+                    var pos = 5+40*Math.random();
+                    var speed = 60+20*(1-scale);
+                    self.addCloud(1, pos+'%', scale, speed);
+                    lastCloudAdded = currentTime;
+                }
+            }
+
+            
+        }
+        
+        this.changeLevelPos = function (currentMouseLevel) {
+            var houseLevels = house.children().not('.preview'); // erhalte die Stockwerke, die keine Vorschau sind
+            for (var i = houseLevels.length-1; i >= 0; i--) {
+                // Berechne die neue Position: Wenn Stockwerk über dem aktuellen Cursor liegt, schiebe ihn um eine Stockwerkhöhe hoch, ansonsten schiebe ihn runter oder lasse ihn bei dem alten Wert
+                var bottom = (i >= currentMouseLevel && currentMouseLevel >= 0) ? ((100/maxLevels)*(i))+(100/maxLevels)+6 : (100/Math.max(maxLevels,4))*i;
+                bottom = house.height()/100*bottom; // berechne Prozent in Pixel
+                
+                // Animiere das Stockwerk auf die neue Bottom Position und die richtige Höhe
+                $(houseLevels[i]).css({
+                    height: house.height()/100*(100/maxLevels)+'px',
+                    bottom: bottom
+                });
+            }
         }
         
         this.getStage = function () {
@@ -183,17 +399,28 @@ var deepDiffMapper = function() {
                 addIcon(unit);
         }
         
-        function addIcon (unit) {
+        function addIcon (unit) {  
             elementList.append(unit.getIcon());
-            unit.getIcon().on('click', function(e){
-                
-            });
+            unit.getIcon()[0].addEventListener('dragstart', function(e){
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('unit', unit);
+                dragUnit = unit;
+                if (unit.parentAllowed('root', o.lang)) {
+                    self.updateZoomLevel(2);
+                }
+            }, false);
+            
+            elementList[0].addEventListener('dragend', function(e){
+                house.find('.preview').remove();
+                self.updateZoomLevel(0);
+                self.changeLevelPos(-1);
+            },false);
         }
         
         this.addUnitList = function (unitList) {
-            $.each(unitList, function(unitName,unitObj){
-                self.addUnit(unitObj);
-            });
+            for (unitObj in unitList){
+                self.addUnit(unitList[unitObj]);
+            };
         }
         
         /// Gibt die Unit zurück, die zu einem angegebenen Tag passt
@@ -217,18 +444,87 @@ var deepDiffMapper = function() {
         }
         
         this.addUnitToStruct = function (parent, unit, pos) {
-            var struct = (parent == 'root') ? houseStruct : parent.childNodes;
-            struct.splice(pos, 0, {
-                unit: unit,
-                attributes: (typeof unit.getSpec(o.lang).defaultAttributes !== 'undefined') ? unit.getSpec(o.lang).defaultAttributes : {},
-                childNodes: [],
-                diffState: 'created'
-            });
-            self.updateEditor();
-            self.highlightChangedLines();
+            var parentUnit = (parent != 'root') ? parent.unit.getName() : 'root';
+            if (unit.parentAllowed(parentUnit, o.lang)) {
+                pos = (pos == 0 && parent == 'root') ? houseStruct.length : pos;
+                var struct = (parent == 'root') ? houseStruct : parent.childNodes;
+                var unitID = guid();
+                var unitObject = {
+                    id: unitID,
+                    unit: unit,
+                    attributes: (typeof unit.getSpec(o.lang).defaultAttributes !== 'undefined') ? unit.getSpec(o.lang).defaultAttributes : {},
+                    childNodes: [],
+                    diffState: 'created'
+                };
+                struct.splice(pos, 0, unitObject);
+                
+                                
+                self.updateEditor();
+                self.highlightChangedLines();
+            }
+        }
+        
+        /// Löscht die angegebene Unit aus der Struktur
+        /// @param struct Struktur
+        /// @param unit Objekt, das gelöscht werden soll
+        this.removeUnitFromStruct = function (struct, unitID) {
+            // durchgehe die Struct
+            for (var i = 0; i < struct.length; i++) {
+                // Wenn Objekt gefunden...
+                if (struct[i].id == unitID) {
+                    struct.splice(i, 1); // ..lösche es
+                    self.updateRendering(); // ..update das Rendering
+                    self.updateEditor(); // ..update den Editor
+                    return true; // ..beende die Funktion
+                }
+                // Durchsuche die Kindelemente rekursiv
+                if(typeof struct[i].childNodes !== 'undefined'){
+                    if (self.removeUnitFromStruct(struct[i].childNodes, unitID)) {
+                        return true; // Beende, wenn in Kindelementen Objekt gefunden wurde
+                    }
+                }
+            }
+            // Objekt wurde nicht gefunden und auch nicht gelöscht
+            return false;
+        }
+        
+        // Fügt eine Aufgabe hinzu
+        // @param challenge Aufgabe, die hinzugefügt werden soll
+        this.addChallenge = function (challenge) {
+            challenges.push(challenge);
+        }
+        
+        // Fügt eine Liste von Aufgaben hinzu
+        // @param callengeList Aufgabenliste, die hinzugefügt werden soll
+        this.addChallengeList = function (challengeList) {
+            for (challenge in challengeList) {
+                self.addChallenge(challengeList[challenge]);
+            }
+        }
+        
+        /// Aktualisiert das Rendering des Hauses
+        this.updateRendering = function () {
+            house.empty();
+            removeDiffNotes(houseStruct);
+            for (var i = houseStruct.length-1; i>=0; i--) {
+                var currentLevel = $('<div class="htmlb asset '+houseStruct[i].unit.getName()+'" id="object-'+houseStruct[i].id+'">');;
+                currentLevel.css({
+                    bottom: (house.height()/100*((100/Math.max(houseStruct.length,4))*(houseStruct.length-1-i))),
+                    height: (house.height()/100*(100/Math.max(houseStruct.length,4)))
+                });
+                currentLevel.empty();
+                house.append(currentLevel);
+                if(typeof houseStruct[i].childNodes !== 'undefined'){
+                    for (var j = houseStruct[i].childNodes.length -1; j >= 0; j--){
+                        currentLevel.prepend($('<div class="htmlb asset '+houseStruct[i].childNodes[j].unit.getName()+'" id="object-'+houseStruct[i].childNodes[j].id+'">'));
+                    }
+                }
+            }
+            self.updateZoomLevel(0);
         }
         
         this.updateEditor = function () {
+            
             var editor = codeBoxElements.editor;
             var editorText = "";
             var lineCount = {value: 1};
@@ -242,6 +538,10 @@ var deepDiffMapper = function() {
         }
         
         function addTagToEditor (tagObject, level, lineCount) {
+            // Wenn gelöscht, füge Tag nicht dazu
+            if (tagObject.diffState == 'deleted')
+                return '';
+                
             var editorText = '';
             
             // Fügt Tabs hinzu, wenn gebraucht
@@ -295,21 +595,25 @@ var deepDiffMapper = function() {
             return editorText;
         }
         
-        /// Entfernt alle gehighlighteten Zeilen und leert updatedLines
-        function removeEditorHighlights () {
-            console.log(updatedLines);
-            for (var i = updatedLines.length-1; i>=0; i--) {
-                codeBoxElements.editor.removeLineClass(updatedLines[i]-1, 'background', 'line-highlight');
-            }
-            updatedLines = [];
+        /// Entfernt gehighlightete Zeile in bestimmter Zeile (und entfernt die Zeile in updatedLines)
+        /// @param line Zeilennummer
+        function removeEditorHighlight (line) {
+            codeBoxElements.editor.removeLineClass(line-1, 'background', 'line-highlight');
+            for (var i = updatedLines.length-1; i >= 0; i--) {
+                if (updatedLines[i] == line) {
+                    updatedLines.splice(i,1);
+                    break;
+                }
+            }   
         }
         
         /// Hebt neue Zeilen hervor und entfernt sie nach 3 Sekunden wieder
         this.highlightChangedLines = function () {
             for (var i = updatedLines.length-1; i>=0; i--) {
                 codeBoxElements.editor.addLineClass(updatedLines[i]-1, 'background', 'line-highlight');
+                var currentLinePos = i;
+                window.setTimeout(function () {removeEditorHighlight(updatedLines[currentLinePos]) }, 3000);
             }
-            window.setTimeout(function () {removeEditorHighlights() }, 3000);
         }
         
         /// Löscht die diffState Einträge in der Datenstruktur
@@ -318,7 +622,7 @@ var deepDiffMapper = function() {
                 if (typeof struct[i].diffState !== 'undefined') {
                     // Wenn Diff State "deleted" ist, dann lösche den kompletten Node
                     if (struct[i]['diffState'] == 'deleted') {
-                        struct.splice(i--, 1);
+                        struct.splice(i, 1);
                         continue;
                     }
                     // ansonsten lösche einfach den diffState Eintrag
@@ -348,25 +652,12 @@ var deepDiffMapper = function() {
                 var newStruct = convertDomToStruct(editorDOM, 'root');
                 
                 houseStruct = deepDiffMapper.map(houseStruct, newStruct);
-                /*console.log(newStruct);
-                console.log(diffStruct);
-                */
-                removeDiffNotes(houseStruct); // rauslöschen! Muss in die Render Update Methode benutzen, nachdem neu gezeichnet wurde
+                self.checkIfWon();
+                self.updateRendering();
                 
-                /* TO KILL START */
-                var editorText = "";
-                $.each(houseStruct, function(index, value) {
-                   var textToAdd = addTagToEditor(value, 0, {value: 0});
-                   editorText += textToAdd;
-                   
-                });
-                editorText = editorText.substr(0, editorText.length-1);
-                $('#debug-output').html(editorText);
-                /* TO KILL END */
-            /*
-            } catch (e) {
-                console.log(e.name +"==> "+ e.message);
-            }*/
+            //} catch (e) {
+                // Do nothing!
+            //}
         }
         
         /// Konvertiert DOM in eigene Datenstruktur
@@ -394,8 +685,12 @@ var deepDiffMapper = function() {
                             }
                         });
                         
+                        // UID Generieren
+                        var unitID = guid();
+
                         // Node Objekt, das hinzugefügt werden soll
                         var tempNode = {
+                            id: unitID,
                             unit: unit,
                             attributes: tempAttributes
                         }
@@ -415,10 +710,98 @@ var deepDiffMapper = function() {
         this.getStruct = function () {
             return houseStruct;
         }
+        
+        // Prüft, ob Spiel gewonnen
+        this.checkIfWon = function () {
+            var challengesCompleted = 0;
+            for ( c in challenges ) {
+                var currentUnitCount = 0;
+                
+                // wenn Root Level Objekt ...
+                if (challenges[c].getUnit().parentAllowed('root', o.lang)) {
+                    for (u in houseStruct) {
+                        // wenn Unit übereinstimmt ...
+                        if (houseStruct[u].unit == challenges[c].getUnit()) {
+                            currentUnitCount++; // ... erhöhe Anzahl
+                        }
+                    }
+                // wenn Stockwerk egal ...
+                } else if (challenges[c].getLevel() == 'all') {
+                    // durchgehe alle Stockwerke
+                    for (var i = houseStruct.length-1; i>= 0; i--) {
+                        // durchgehe alle Baueinheiten innerhalb dieses Stockwerks
+                        for (u in houseStruct[i].childNodes) {
+                            // wenn diese Einheit übereinstimmt ...
+                            if (houseStruct[i].childNodes[u].unit == challenges[c].getUnit()) {
+                                currentUnitCount++; // ... erhöhe Anzahl
+                            }
+                        }
+                    }
+                // wenn Stockwerk vorhanden ist, also es mehr Stockwerke als das angegebene gibt
+                } else if (houseStruct.length >= challenges[c].getLevel() && typeof houseStruct[challenges[c].getLevel()-1].childNodes !== 'undefined') {
+                    
+                    // durchgehe alle Baueinheiten innerhalb dieses Stockwerks
+                    for (u in houseStruct[houseStruct.length-challenges[c].getLevel()].childNodes) {
+                        // wenn diese Einheit übereinstimmt ...
+                        if (houseStruct[houseStruct.length-challenges[c].getLevel()].childNodes[u].unit == challenges[c].getUnit()) {
+                            currentUnitCount++; // ... erhöhe Anzahl
+                        }
+                    }
+                }
                 
         
-        this.addCloud = function (type, posY, speed) {
-            clouds.push(new htmlbCloud(self, type, posY, speed));   
+                
+                // Wenn Anzahl übereinstimmt ...
+                if (( challenges[c].getType() == 'exact' && challenges[c].getCount() == currentUnitCount )        // Wenn genau so viele Elemente gebaut wurden
+                    || ( challenges[c].getType() == 'minimum' && challenges[c].getCount() <= currentUnitCount )   // Wenn wenigstens so viele Elemente gebaut wurden
+                    || ( challenges[c].getType() == 'maximum' && challenges[c].getCount() >= currentUnitCount )   // Wenn maximal so viele Elemente gebaut wurden
+                ) {
+                    challengesCompleted++; // erhöhe geschaffte Aufgaben
+                }
+                
+            }
+            
+            // Wenn Anzahl komplettierter Aufgaben mit Anzahl Aufgaben übereinstimmt ...
+            if (challengesCompleted == challenges.length) {
+                gameCompleted = true; // ... hat der Spieler gewonnen
+                houseBox.append('<a href="#" class="htmlb complete-button">Spiel abschließen</a>');
+            } else {
+                gameCompleted = false;
+                houseBox.find('.complete-button').remove();
+            }
+        }
+        
+        /// Aktualisiert das Zoomlevel und ändert daraufhin die Größe des Hauses
+        /// @param diff Differenz zur Anzahl der Werte in der Datenstruktur (z.B. 1, wenn ein neues Stockwerk bei DragDrop hinzugefügt werden soll)
+        this.updateZoomLevel = function (diff) {
+            var oldLevel = maxLevels;
+            maxLevels = Math.max(houseStruct.length+diff, 4);
+            var oldSideRatio = 2.488888888888889;//house.width()/(house.height()/oldLevel);
+            var newWidth = (house.height()/maxLevels)*oldSideRatio;
+            if (diff > 0) {
+                var i = 0;
+                house.stop().find('.level, .ground, .roof').not('.preview').each(function () {
+                    
+                    var bottom = (100/maxLevels)*(i++);
+                    bottom = house.height()/100*bottom; // berechne Prozent in Pixel
+                    
+                    $(this).css({
+                        bottom: bottom+'px',
+                        height: house.height/100*(100/maxLevels)+'px'
+                    });
+                });
+            }
+            landside.css({
+                backgroundSize: (100+10*Math.max(0, 14-maxLevels))+'%'
+            });
+            house.css({
+                width: newWidth,
+                marginLeft: -newWidth*0.5
+            });
+        }
+        
+        this.addCloud = function (type, posY, scale, speed) {
+            clouds.push(new htmlbCloud(self, type, posY, scale, speed));   
         }
         
         this.removeCloud = function (cloud) {
@@ -515,15 +898,55 @@ var deepDiffMapper = function() {
         }
     }
     
+    // Aufgabe
+    // @param interner Name Name der Aufgabe
+    // @param unit Einheit, die in der Aufgabe gebaut werden soll
+    // @param level Stockwerk, in das gebaut werden soll. 'all', wenn Stockwerk egal
+    // @param count Anzahl der Elemente, die gebaut werden sollen
+    // @param type Typ der Aufgabe: 'minimum', 'exact', 'maximum'
+    htmlbChallenge = function( name, unit, level, count , type) {
+        
+        if (typeof type === 'undefined') {
+            var type = 'minimum';
+        }
+        
+        // Erhalte den Namen
+        this.getName = function () {
+            return name;
+        }
+        
+        // Erhalte die Einheit
+        this.getUnit = function () {
+            return unit;
+        }
+        
+        // Erhalte das Stockwerk, in dem das Objekt gebaut werden soll
+        this.getLevel = function () {
+            return level;
+        }
+        
+        // Erhalte die Anzahl der zu bauenden Einheiten
+        this.getCount = function () {
+            return count;
+        }
+        
+        // Erhalte dem Typ der Aufgabe
+        this.getType = function () {
+            return type;
+        }
+        
+    }
+    
     // Cloud
-    htmlbCloud = function(lot, type, posY, speed) {
+    htmlbCloud = function( lot, type, posY, scale, speed ) {
         
         var self = this;
         var assetDOM = $('<div class="htmlb asset cloud-'+type+'">');
         lot.getStage().append(assetDOM);
         
         assetDOM.css('top', posY);
-        assetDOM.animate({left: lot.getStage().width()+assetDOM.width()},speed*1000, function(){
+        assetDOM.css('scale', scale)
+        assetDOM.transition({x: lot.getStage().width()},speed*1000, "linear", function(){
             lot.removeCloud(self);
         });
         
@@ -533,7 +956,5 @@ var deepDiffMapper = function() {
         
         return this;
     }
-	
-	
 
 }( jQuery ));

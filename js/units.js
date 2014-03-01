@@ -158,6 +158,36 @@ var units = {
             allowChildNodes: false,
             allowedParentNodes: ['ground']
         }
+    ),
+    
+    // Schornstein
+    chimney: new htmlbUnit(
+        'chimney', 'Schornstein',
+        // SGML Spec
+        {
+            type: 'attribute',
+            allowedTags: ['roof'],
+            behaveiour: {
+                door: 'defineBool'
+            }
+        },
+        // XML Spec
+        {
+            tag: 'chimney',
+            allowedAttributes: [],
+            allowChildNodes: false,
+            allowedParentNodes: ['roof']
+        },
+        // HTML Spec
+        {
+            tag: 'chimney',
+            allowedAttributes: ['class','name','id'],
+            defaultAttributes: {
+                class: 'simple'
+            },
+            allowChildNodes: false,
+            allowedParentNodes: ['roof']
+        }
     )
     
     
