@@ -223,7 +223,7 @@ window.requestAnimFrame = (function(){
                 var windowWidth;
                 var i = 0;
                 var pos = -1;
-                
+                                
                 if(typeof houseStruct[houseStruct.length - 1 - currentMouseLevel] !== 'undefined' && dragUnit.parentAllowed(houseStruct[houseStruct.length - 1 - currentMouseLevel].unit.getName(), o.lang)){
                     house.find('.preview').remove();
                     var assetPreview = $('<div class="htmlb asset ' + dragUnit.getName() + ' preview">');
@@ -461,6 +461,12 @@ window.requestAnimFrame = (function(){
                 };
                 struct.splice(pos, 0, unitObject);
                 
+                $(self).on('dblclick', '#object-'+unitID, function(e){
+                    e.stopPropagation();
+                    self.removeUnitFromStruct(houseStruct, unitID); 
+                    $(self).off('dblclick', '#object-'+unitID);
+                 });
+         
                                 
                 self.updateEditor();
                 self.highlightChangedLines();
@@ -642,13 +648,23 @@ window.requestAnimFrame = (function(){
             // Exception Handling, damit Browser nicht abstürzen, wenn Tags nicht erkann werden
             //try {
                 var editorValue = codeBoxElements.editor.getValue();
-                // SGML Mode Only!
+                
+                // prepare for html
+                if (o.lang == 'html') {
+                    var tempValue = editorValue.replace(/\<window (.*?)\>/g, "<window $1/>");
+                    tempValue = tempValue.replace(/\<chimney (.*?)\>/g, "<chimney $1/>");
+                    tempValue = tempValue.replace(/\<door (.*?)\>/g, "<door $1/>");
+                    editorValue = tempValue;
+                }   
+                             
+                // SGML Mode Only (depricated)
+                /*
                 if (o.lang == 'sgml') {
                     // Entferne alle New Lines, damit auch bei Zeilenumbrüchen in Tags RegExp funktionieren
                     editorValue = editorValue.replace("\n","");
                     // Schließt alle Tags, damit beim Umwandeln in DOM keine Verschachtelung vorgenommen wird
                     editorValue = editorValue.replace(/\<(.*?)\>/g, "<$1></$1>");
-                }
+                }*/
                 // Wandelt String in DOM um
                 var editorDOM = $(editorValue);
                 // Convertiert DOM in Haus-Struktur und speichert diese
@@ -674,7 +690,7 @@ window.requestAnimFrame = (function(){
                 if (value.nodeName != '#text') {
                     var unit = self.getUnitByTag(value.nodeName.toLowerCase());
                     // Füge Tag nur hinzu, wenn er unter den erlaubten Tags ist
-                    if (unit != null && unit.parentAllowed(parentName, o.lang)) {
+                if (unit != null && unit.parentAllowed(parentName, o.lang)) {
                         
                         var attributes = value.attributes;
                         var childNodes = value.childNodes;

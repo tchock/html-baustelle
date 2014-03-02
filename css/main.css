@@ -1,9 +1,14 @@
+html, body {
+  margin: 0;
+  padding: 0; 
+}
+
 .htmlb.wrapper {
   font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
   font-size: 14px;
   color: #fff;
   
-  width: 920px;
+  width: 750px;
   height: 520px;
   position: relative;
 }

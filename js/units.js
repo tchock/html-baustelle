@@ -25,11 +25,8 @@ var units = {
         },
         // HTML Spec
         {
-            tag: 'element',
+            tag: 'level',
             allowedAttributes: ['class','name','id'],
-            defaultAttributes: {
-              class: 'level'
-            },
             allowChildNodes: true,
             allowedParentNodes: ['root']
         }
@@ -123,7 +120,7 @@ var units = {
                 class: 'simple'
             },
             allowChildNodes: false,
-            allowedParentNodes: ['element', 'ground']
+            allowedParentNodes: ['level', 'ground']
         }
     ),
     
