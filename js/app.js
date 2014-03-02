@@ -432,12 +432,17 @@ window.requestAnimFrame = (function(){
             for (var i = units.length-1; i>=0; i--) {
                 if (units[i].getSpec(o.lang).tag == tag) {
                     
+                    var rightAttributes = true;
                     if (typeof units[i].getSpec(o.lang).definingAttributes !== 'undefined' && typeof attributes !== 'undefined') {
                         for (attr in units[i].getSpec(o.lang).definingAttributes) {
-                            if (attributes[attr].value != units[i].getSpec(o.lang).definingAttributes[attr])
-                                return null;
+                            if (attributes[attr].value != units[i].getSpec(o.lang).definingAttributes[attr]) {
+                                rightAttributes = false;
+                                break;
+                            }
                         }
                     }
+                    if (!rightAttributes)
+                        continue;
                     
                     return units[i];
                 }
