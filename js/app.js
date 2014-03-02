@@ -111,8 +111,8 @@ window.requestAnimFrame = (function(){
 
         var o = $.extend({
             lang: 'xml', // Sprache
-            codeBoxHeadline: 'Schreibe deinen Code',
-            codeBoxText: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore.',
+            codeBoxHeadline: 'Code Editor',
+            codeBoxText: 'Schreiben Sie Ihren Code und schauen Sie, wie sich das Haus dadurch anpasst.',
             examMode: false
         }, options );
 
