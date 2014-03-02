@@ -25,8 +25,14 @@ var units = {
         },
         // HTML Spec
         {
-            tag: 'level',
+            tag: 'element',
             allowedAttributes: ['class','name','id'],
+            definingAttributes: {
+                class: 'level'  
+            },
+            defaultAttributes: {
+                class: 'level'
+            },
             allowChildNodes: true,
             allowedParentNodes: ['root']
         }
@@ -177,10 +183,13 @@ var units = {
         },
         // HTML Spec
         {
-            tag: 'chimney',
+            tag: 'element',
             allowedAttributes: ['class','name','id'],
+            definingAttributes: {
+                class: 'chimney'
+            },
             defaultAttributes: {
-                class: 'simple'
+                class: 'chimney'
             },
             allowChildNodes: false,
             allowedParentNodes: ['roof']

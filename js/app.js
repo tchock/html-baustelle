@@ -428,10 +428,19 @@ window.requestAnimFrame = (function(){
         
         /// Gibt die Unit zurück, die zu einem angegebenen Tag passt
         /// @param tag Tag, nach dem gesucht wird
-        this.getUnitByTag = function (tag) {
+        this.getUnitByTag = function (tag, attributes) {
             for (var i = units.length-1; i>=0; i--) {
-                if (units[i].getSpec(o.lang).tag == tag)
+                if (units[i].getSpec(o.lang).tag == tag) {
+                    
+                    if (typeof units[i].getSpec(o.lang).definingAttributes !== 'undefined' && typeof attributes !== 'undefined') {
+                        for (attr in units[i].getSpec(o.lang).definingAttributes) {
+                            if (attributes[attr].value != units[i].getSpec(o.lang).definingAttributes[attr])
+                                return null;
+                        }
+                    }
+                    
                     return units[i];
+                }
             }
             return null;
         }
@@ -688,7 +697,7 @@ window.requestAnimFrame = (function(){
             $.each(dom, function(index, value) {
                 // filtere textnodes heraus
                 if (value.nodeName != '#text') {
-                    var unit = self.getUnitByTag(value.nodeName.toLowerCase());
+                    var unit = self.getUnitByTag(value.nodeName.toLowerCase(), value.attributes);
                     // Füge Tag nur hinzu, wenn er unter den erlaubten Tags ist
                 if (unit != null && unit.parentAllowed(parentName, o.lang)) {
                         
